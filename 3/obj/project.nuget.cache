@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "13qGzy8M1N09DB3a5me1CQjiccz25tKHje91+Gk6zJng7Omqs0rGF6swKIK4fwyHWeNbLc0yyJF5iyCSjBG4zw==",
+  "success": true,
+  "projectFilePath": "c:\\Users\\steli\\source\\Advent\\3\\3.fsproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\steli\\.nuget\\packages\\fsharp.core\\5.0.0\\fsharp.core.5.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
