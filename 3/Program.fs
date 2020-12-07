@@ -55,13 +55,6 @@ In this example, traversing the map using this slope would cause you to encounte
 
 Starting at the top-left corner of your map and following a slope of right 3 and down 1, how many trees would you encounter?
 
-// Function used for part one
-let rec traverse (lst : string list) (count : int) (x : int) =
-  match lst with
-    | [] -> count
-    | [""]-> count
-    | h::t -> traverse t (treeCheck h count x) ((x + 3)%String.length h)
-
 --- Part Two ---
 
 Time to check the rest of the slopes - you need to minimize the probability of a sudden arboreal stop, after all.
