@@ -82,8 +82,9 @@ What do you get if you multiply together the number of trees encountered on each
 open System.IO
 
 let input = File.ReadLines "input.txt" |> List.ofSeq 
+let example = File.ReadLines "example.txt" |> List.ofSeq
 
-let treeCheck (s : string) (n : int64) (x : int) =
+let tree (s : string) (n : int64) (x : int) =
   match s.[x] with
     | '#' -> n + 1L
     | _ -> n
@@ -94,25 +95,12 @@ let rec slide (lst : string list) (slope : int*int) (count : int64) ((x,y) : int
     | [""] -> count
     | h::t ->
       match y % snd slope with
-        | 0 -> slide t slope (treeCheck h count x) ((x + fst slope) % String.length h, y + 1)
+        | 0 -> slide t slope (tree h count x) ((x + fst slope) % String.length h, y + 1)
         | _ -> slide t slope count (x, y + 1)
 
 
 [<EntryPoint>]
 let main _ =
-  let example = [
-    "..##......."
-    "#...#...#.."
-    ".#....#..#."
-    "..#.#...#.#"
-    ".#...##..#."
-    "..#.##....."
-    ".#.#.#....#"
-    ".#........#"
-    "#.##...#..."
-    "#...##....#"
-    ".#..#...#.#" ]
-
   let slopes = [ (1,1); (3,1); (5,1); (7,1); (1,2) ]
 
   printfn "Part 1. %A" ( slide input (3,1) 0L (0,0) )
