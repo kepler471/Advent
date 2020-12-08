@@ -62,7 +62,7 @@ type Passport = {
   hcl: string
   ecl: string
   pid: string
-  cid: string option }
+  cid: string }
 
 let parseLines (input : string list) = 
   let rec parse line batch input =
@@ -74,7 +74,7 @@ let parseLines (input : string list) =
   parse "" [] input
     
 let decompose (line : string) =
-  line |> Seq.toList |> Seq.map (fun c -> string(c)) |> Seq.toList
+  line |> Seq.map (fun c -> string(c)) |> Seq.toList
 
 let rec jsonify (line : string list) (json : string list) =
   match line with
@@ -83,6 +83,17 @@ let rec jsonify (line : string list) (json : string list) =
     | ":"::t -> jsonify t ("\":\""::json)
     | " "::t -> jsonify t ("\", \""::json)
     | h::t -> jsonify t (h::json)
+
+let rec mapify (line : string list) (m : string list) =
+  match line with
+    | [] -> m |> List.rev |> List.reduce (+)
+    | [" "] -> mapify [] m
+    | ":"::t -> mapify t (" "::m)
+    | h::t -> mapify t (h::m)
+
+let prepstring = example |> parseLines |> List.head |> decompose |> mapify <| []
+let getmap = prepstring.Split ' ' |> Array.toList
+
 
 let parseJson (json : string) =
   try
@@ -96,12 +107,46 @@ let countValid (list : Passport option list) =
 let batchToPassports (list : string list) =
   list |> parseLines |> List.map ( decompose >> (fun l -> jsonify l []) >> parseJson )  
 
+let check (p : Passport) =
+  let fields = [p.byr; p.iyr; p.eyr; p.hgt; p.hcl; p.ecl; p.pid]
+  match fields |> List.filter (fun x -> x |> isNull) |> List.length with
+    | 0 -> true
+    | _ -> false
+
+
+// input |> parseLines |> basicCheck |> List.length = 181!!!! still short by one?
+let basicCheck (lst : string list) =
+  let fields = ["byr"; "iyr"; "eyr"; "hgt"; "hcl"; "ecl"; "pid"]
+  let tryall (str : string) = fields |> List.filter (fun a -> str.Contains a |> not)
+  lst |> List.filter (tryall >> List.isEmpty)
+
+let getByName s (p : Passport option) =
+  typeof<Passport>.GetProperties()
+  |> Array.tryFind (fun t -> t.Name = s)
+  |> Option.map (fun pi -> pi.GetValue p.Value)
+
+let buildPassport (line : string) = {
+  byr = "aslkj"
+  iyr = "aslkj"
+  eyr = "aslkj"
+  hgt = "aslkj"
+  hcl = "aslkj"
+  ecl = "aslkj"
+  pid = "aslkj"
+  cid = "aslkj"
+}
+
+let ex1 = batchToPassports example
+let passports = batchToPassports input
+//let xxx = passports.Head.Value.
+let d =
+  Map.ofList 
+
 [<EntryPoint>]
 let main _ =
-  let ex1 = batchToPassports example
   ex1 |> List.iter (printfn "Examples: %A")
   printfn "Part 1 Count Examples. %A" (countValid ex1)
-  let passports = batchToPassports input
   printfn "Part 1. %A" (countValid passports)
-  passports |> List.iter (printfn "%A")
+  printfn "Part 1 again. %A" (passports |> List.filter (fun x -> check x.Value) |> List.length)
+//  passports |> List.iter (printfn "%A")
   0 // return an integer exit code
