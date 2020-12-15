@@ -3,7 +3,7 @@ const input = rstrip(read("input.txt", String), '\n')
 yescount = map(x -> replace(x, "\n" => "") |> Set |> length, split(input, "\n\n")) |> sum
 yescountall = map(x -> reduce(∩, split(x, "\n")) |> length, split(input, "\n\n")) |> sum
 
-#= 
+#= Notes and alternate methods
 #Part 1.
 # Time winner
 map(x -> replace(x, "\n" => "") |> Set |> length, split(input, "\n\n")) |> sum
@@ -61,7 +61,7 @@ function pnunique(v)
     res
 end
 
-Part 1.
+Part 2.
 # This has nested mapping which is awkward
 map(y -> reduce(∩, y) |> length, map(x -> split(x, "\n"), split(input, "\n\n"))) |> sum
 # Fixed by composition of reduce and split
