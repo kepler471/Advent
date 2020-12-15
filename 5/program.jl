@@ -1,12 +1,10 @@
-input = split(read("input.txt", String))
+const input = split(read("input.txt", String))
 
 
-function seatID(row, col)
-	8 * (row - 1) + (col - 1)
-end
+seatID(row, col) = 8 * (row - 1) + (col - 1)
 
 
-function locate(ticket, row::Array{Int,1}=collect(1:128), col::Array{Int,1}=collect(1:8))
+function locate(ticket, row=collect(1:128), col=collect(1:8))
 	if length(ticket) == 0
 		return seatID(row[1], col[1])
 	elseif ticket[1] == 'F'
@@ -23,16 +21,21 @@ end
 
 
 function findgap(X)
-	for i = X
-	   if i > 1 && tickets[i] - tickets[i-1] > 1
+	for i = X[2:end]
+	   if tickets[i] - tickets[i-1] > 1
 		   return tickets[i] - 1
 	   end
 	end
 end
 
 
-tickets = sort(map(locate, input))
+tickets = map(locate, input) |> sort
 maxID = tickets[end]
 missingID = findgap(tickets)
 
-print("Largest seat ID: ", maxID, "\t:::\tMissing seat ID: ", missingID)
+print("Largest seat ID: ", maxID, "\t:::\tMissing seat ID: ", missingID, "\n")
+
+# Alternate 
+# map(locate, input)
+# locate.(input)
+# [locate(i) for i in input]
