@@ -76,6 +76,7 @@ Use the binary numbers in your diagnostic report to calculate the oxygen generat
 
 // Solve
 let input =
+    // TODO: Fix issue where interactive shell loaded at root repo path cannot run this line
     System.IO.File.ReadLines "inputs/03.txt" 
     |> Seq.toList
     
@@ -92,6 +93,9 @@ let rec parseReport lines acc =
 let epsilon = (parseReport diagnosticReport [for _ in 1..12 -> 0.0]) |> List.map (fun x -> float x /  float (List.length input))
 
 let gamma = epsilon |> List.map (fun x -> 1.0 - x)
+
+let myRound n =
+    if n >= 0.5 then 1.0 else 0.0
 
 let decToBin decimal bits =
     [ for pow in bits..(-1)..0 do yield decimal >>> pow &&& 1]
@@ -111,7 +115,9 @@ let oxygen (matrix: float list list) =
         | m -> 
             let search = // are we looking for ones or zeros
                 let colAve = [ for i in m -> i.[col]] |> List.average // removed float on i.[col]
-                round colAve
+                printfn "Oxygen search, length: %A col: %A, colAve: %A" (List.length m) (col + 1) (myRound colAve)
+                if (List.length m) = 2 then printfn "%A" m
+                myRound colAve
             let reduced = // filter by the search (1 or 0)
                  m |> List.filter (fun f -> f.[col] = search)
             reduce reduced (col + 1)
@@ -124,7 +130,9 @@ let co2 (matrix: float list list) =
         | m -> 
             let search = // are we looking for ones or zeros
                 let colAve = [ for i in m -> i.[col]] |> List.average // removed float on i.[col]
-                match round colAve with
+                printfn "CO2 search, length: %A col: %A, colAve: %A" (List.length m) (col + 1) (round colAve)
+                if (List.length m) = 2 then printfn "%A" m
+                match myRound colAve with
                 | 0.0 -> 1.0
                 | 1.0 -> 0.0
             let reduced = // filter by the search (1 or 0)
@@ -136,17 +144,3 @@ let answer =
     let a = oxygen diagnosticReport |> List.map (fun x -> int x) |> binToDec
     let b = co2 diagnosticReport |> List.map (fun x -> int x) |> binToDec
     a * b
-
-diagnosticReport |> List.filter (fun f -> f.[3] = 0) |> List.length
-
-printfn "%A" (binToDec [0;1;1;1])
-
-let a = [ for i in diagnosticReport -> float i.[3]] |> List.sum
-let b = diagnosticReport |> List.length |> float
-let c = round(a / b)
-
-// let abc = [for i in diagnosticReport -> i.[1]] |> List.sum 
-float 0.2
-
-[ for i in diagnosticReport -> float i.[3]] |> List.average |> round
-diagnosticReport
