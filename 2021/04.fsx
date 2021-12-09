@@ -151,5 +151,5 @@ let getBoards input =
 let BingoWinners = drawNumbers (getDraw input) (getBoards input)
 
 printfn "--- Day 4: Giant Squid! ---"
-printfn "Part One: (board id * score) -> %A" (BingoWinners |> List.rev |> List.head)
-printfn "Part Two: (board id * score) -> %A" (BingoWinners |> List.head)
+printfn "Part One: (board id * score) -> %A" (BingoWinners |> List.rev)
+printfn "Part Two: (board id * score) -> %A" (BingoWinners |> List.rev |>  List.head)
