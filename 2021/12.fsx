@@ -78,27 +78,34 @@ let parse (pairs: (string * string) seq) =
         |> Seq.map (fun (a, b) -> Connection(a, b))
         |> Seq.fold (fun acc x -> x :: acc) adj
 
-    let BuildGraph (pairs: (string * string) seq) =
+    let BuildGraph (init: 'T) (pairs: (string * string) seq) =
         let uids = pairs |> uniqueIds
         let g: 'T Graph = []
         uids
         |> Seq.map (fun uid -> 
-            let n = Node(uid, 0) 
+            let n = Node(uid, init) 
             n, BuildAdjacency n pairs)
         |> Seq.fold (fun acc x -> x :: acc) g
 
-    BuildGraph pairs
+    BuildGraph 0 pairs
 
-// Function increases the 
-let incVisit (id: string) (graph: 'T Graph) =
+let incVisit (incrementer: 'T -> 'T) (node: 'T Node) =
+    Node(fst node, snd node |> incrementer)
+
+let getSize (node: 'T Node) = 
+    if fst node = (fst node).ToUpper() then Big else Small
+
+let pathfinder (start: 'T Node) (finish: 'T Node) (graph: 'T Graph) = 
     ()
 
+
+/// Testing zone
 let testg = parse input
 let testa = GetAtom "kj" testg
+let testn = GetNode "kj" testg
 testa.Value |> (fst >> snd >> (+) 1)
-
-// Testing zone
-Node("abc", 0)
+testn.Value |> fst
+Node("abc", 0) |> incVisit ((+) 1)
 GetNode "LN" testg |> (fun x -> match x with 
                                 | Some x -> Some (fst x)
                                 | None -> None)
