@@ -3,6 +3,22 @@
 //     | Connections of Cave list
 //     | Size of Size
 
+let input = 
+    [|
+        "dc-end"
+        "HN-start"
+        "start-kj"
+        "dc-start"
+        "dc-HN"
+        "LN-dc"
+        "HN-end"
+        "kj-sa"
+        "kj-HN"
+        "kj-dc"
+    |]
+    |> Array.map (fun x -> x.Split "-")
+    |> Array.map (fun x -> x.[0], x.[1])
+
 type Size =
     | Big
     | Small
@@ -22,8 +38,8 @@ type Atom<'TNode, 'TConnection> =
 type Graph<'TNode, 'TConnection> = 
     Atom<'TNode, 'TConnection> list
 
-let GetNodeId (node: Node<'T>) : 
-    string = node |> fst
+let GetNodeId (node: Node<'T>) : string = 
+    node |> fst
     
 let GetAtomId (atom: Atom<_, _>) : string =
     atom |> fst |> fst
@@ -42,50 +58,58 @@ let AddNode (node: Node<'T>) (graph: Graph<'T,_>): Graph<'T,_> =
     match (GetNode id graph) with
     | None ->  
         let newAdj : Adjacency<'T> = []
-        let newAtom: Atom<'T,_> = (node, [])
+        let newAtom: Atom<'T,_> = (node, newAdj)
         graph @ [newAtom]
     | _ -> graph
 
-let input = 
-    [|
-        "dc-end"
-        "HN-start"
-        "start-kj"
-        "dc-start"
-        "dc-HN"
-        "LN-dc"
-        "HN-end"
-        "kj-sa"
-        "kj-HN"
-        "kj-dc"
-    |]
-    |> Array.map (fun x -> x.Split "-")
-    |> Array.map (fun x -> x.[0], x.[1])
-
-let connContains (id: string) (conn: string * string) = 
-    fst conn = id || snd conn = id
-
-let readConn (id: string) (a: string, b: string) = 
-    match a, b with
-    | a, b when b = id -> Some(b, a)
-    | a, b when a = id -> Some(a, b)
-    | _ -> None
-
-let getUniqueNodeIds (pairs: (string * string) []) = 
-    pairs
-    |> Array.fold (fun acc x -> [fst x; snd x] @ acc) []
-    |> Set
-
-let uids = input |> getUniqueNodeIds
-
-let Build (uin: string) (pairs: seq<string * string>) = 
+let parse (pairs: (string * string) seq) = 
+    let uniqueIds (pairs: (string * string) seq) = 
         pairs
-        |> Seq.filter (connContains uin)
-        |> Seq.map (fun (a, b) -> Connection(a, b, Node(uin, 0)))
-        |> Seq.fold (fun acc x -> x :: acc) []
+        |> Seq.fold (fun acc x -> [fst x; snd x] @ acc) []
+        |> Set
+    
+    let BuildAdjacency (node: int Node) (pairs: (string * string) seq) = 
+        let connContains (id: 'a) (conn: 'a * 'a) = 
+            fst conn = id || snd conn = id
+        
+        let adj: int Node Adjacency = []
+        pairs
+        |> Seq.filter (connContains (GetNodeId node))
+        |> Seq.map (fun (a, b) -> Connection(a, b, node))
+        |> Seq.fold (fun acc x -> x :: acc) adj
 
-Build "HN" input
+    let BuildGraph (pairs: (string * string) seq) =
+        let uids = pairs |> uniqueIds
+        let g: Graph<_,_> = []
+        uids
+        |> Seq.map (fun uid -> 
+            let n = Node(uid, 0) 
+            n, BuildAdjacency n pairs)
+        |> Seq.fold (fun acc x -> x :: acc) g
+
+    BuildGraph pairs
+
+let incVisit (id: string) (graph: Graph<_,_>) =
+    ()
+
+let testg = parse input
+let testa = GetAtom "kj" testg
+testa.Value |> (fst >> snd >> (+) 1)
+
+
+Node("abc", 0)
+GetNode "LN" testg |> (fun x -> match x with 
+                                | Some x -> Some (fst x)
+                                | None -> None)
+let ggg: Atom<int,_> = (Node("HN", 0), BuildAdjacency (Node("HN", 0)) input)
+ggg |> snd |> List.head
+
+ggg
+
+
+// let AddAdjacency (node: )
+
 
 let testnode:Node<int> = Node("test", 2)
 let g: Graph<int,int> = []
-AddNode testnode g
+let h = AddNode testnode g
