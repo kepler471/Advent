@@ -26,39 +26,39 @@ type Size =
 type Node<'T> = 
     string (* id *)  * 'T (* node data *)
 
-type Connection<'T> = 
-    string (* id *) * string (* id *)  * 'T
+type Connection = 
+    string (* id *) * string (* id *)
 
-type Adjacency<'TStruct> = 
-    Connection<'TStruct> list
+type Adjacency = 
+    Connection list
 
-type Atom<'TNode, 'TConnection> = 
-    Node<'TNode> * Adjacency<'TConnection>
+type Atom<'TNode> = 
+    Node<'TNode> * Adjacency
 
-type Graph<'TNode, 'TConnection> = 
-    Atom<'TNode, 'TConnection> list
+type Graph<'TNode> = 
+    Atom<'TNode> list
 
-let GetNodeId (node: Node<'T>) : string = 
+let GetNodeId (node: 'T Node) : string = 
     node |> fst
     
-let GetAtomId (atom: Atom<_, _>) : string =
+let GetAtomId (atom: 'T Atom) : string =
     atom |> fst |> fst
 
-let GetAtom (id: string) (graph: Graph<_, _>) : Atom<_, _> option =
+let GetAtom (id: string) (graph: 'T Graph) : 'T Atom option =
     graph
     |> List.tryFind (fun atom -> (GetAtomId atom) = id)
 
-let GetNode (id: string) (graph: Graph<_, _>) : Node<_> option =
+let GetNode (id: string) (graph: 'T Graph) : 'T Node option =
     match (GetAtom id graph) with
     | Some (a) -> Some(fst a)
     | None -> None
 
-let AddNode (node: Node<'T>) (graph: Graph<'T,_>): Graph<'T,_> = 
+let AddNode (node: Node<'T>) (graph: 'T Graph): 'T Graph = 
     let id = GetNodeId node
     match (GetNode id graph) with
     | None ->  
-        let newAdj : Adjacency<'T> = []
-        let newAtom: Atom<'T,_> = (node, newAdj)
+        let newAdj : Adjacency = []
+        let newAtom: 'T Atom = (node, newAdj)
         graph @ [newAtom]
     | _ -> graph
 
@@ -68,19 +68,19 @@ let parse (pairs: (string * string) seq) =
         |> Seq.fold (fun acc x -> [fst x; snd x] @ acc) []
         |> Set
     
-    let BuildAdjacency (node: int Node) (pairs: (string * string) seq) = 
+    let BuildAdjacency (node: 'T Node) (pairs: (string * string) seq) = 
         let connContains (id: 'a) (conn: 'a * 'a) = 
             fst conn = id || snd conn = id
         
-        let adj: int Node Adjacency = []
+        let adj: Adjacency = []
         pairs
         |> Seq.filter (connContains (GetNodeId node))
-        |> Seq.map (fun (a, b) -> Connection(a, b, node))
+        |> Seq.map (fun (a, b) -> Connection(a, b))
         |> Seq.fold (fun acc x -> x :: acc) adj
 
     let BuildGraph (pairs: (string * string) seq) =
         let uids = pairs |> uniqueIds
-        let g: Graph<_,_> = []
+        let g: 'T Graph = []
         uids
         |> Seq.map (fun uid -> 
             let n = Node(uid, 0) 
@@ -89,27 +89,20 @@ let parse (pairs: (string * string) seq) =
 
     BuildGraph pairs
 
-let incVisit (id: string) (graph: Graph<_,_>) =
+// Function increases the 
+let incVisit (id: string) (graph: 'T Graph) =
     ()
 
 let testg = parse input
 let testa = GetAtom "kj" testg
 testa.Value |> (fst >> snd >> (+) 1)
 
-
+// Testing zone
 Node("abc", 0)
 GetNode "LN" testg |> (fun x -> match x with 
                                 | Some x -> Some (fst x)
                                 | None -> None)
-let ggg: Atom<int,_> = (Node("HN", 0), BuildAdjacency (Node("HN", 0)) input)
-ggg |> snd |> List.head
-
-ggg
-
-
-// let AddAdjacency (node: )
-
 
 let testnode:Node<int> = Node("test", 2)
-let g: Graph<int,int> = []
+let g: int Graph = []
 let h = AddNode testnode g
