@@ -4,18 +4,7 @@
 //     | Size of Size
 
 let input = 
-    [|
-        "dc-end"
-        "HN-start"
-        "start-kj"
-        "dc-start"
-        "dc-HN"
-        "LN-dc"
-        "HN-end"
-        "kj-sa"
-        "kj-HN"
-        "kj-dc"
-    |]
+    System.IO.File.ReadAllLines "2021/inputs/12.txt"
     |> Array.map (fun x -> x.Split "-")
     |> Array.map (fun x -> x.[0], x.[1])
 
@@ -23,6 +12,7 @@ type Size =
     | Big
     | Small
 
+// TODO: How would I make id generic type
 type Node<'T> = 
     string (* id *)  * 'T (* node data *)
 
@@ -44,6 +34,9 @@ let GetNodeId (node: 'T Node) : string =
 let GetAtomId (atom: 'T Atom) : string =
     atom |> fst |> fst
 
+let GetAtomAdj (atom: 'T Atom) : Adjacency =
+    atom |> snd
+
 let GetAtom (id: string) (graph: 'T Graph) : 'T Atom option =
     graph
     |> List.tryFind (fun atom -> (GetAtomId atom) = id)
@@ -62,12 +55,12 @@ let AddNode (node: Node<'T>) (graph: 'T Graph): 'T Graph =
         graph @ [newAtom]
     | _ -> graph
 
-let parse (pairs: (string * string) seq) = 
-    let uniqueIds (pairs: (string * string) seq) = 
-        pairs
-        |> Seq.fold (fun acc x -> [fst x; snd x] @ acc) []
-        |> Set
-    
+let uniqueIds (pairs: ('a * 'a) seq) = 
+    pairs
+    |> Seq.fold (fun acc x -> [fst x; snd x] @ acc) []
+    |> Set
+
+let parse (init: 'T) (pairs: (string * string) seq) = 
     let BuildAdjacency (node: 'T Node) (pairs: (string * string) seq) = 
         let connContains (id: 'a) (conn: 'a * 'a) = 
             fst conn = id || snd conn = id
@@ -84,32 +77,42 @@ let parse (pairs: (string * string) seq) =
         uids
         |> Seq.map (fun uid -> 
             let n = Node(uid, init) 
-            n, BuildAdjacency n pairs)
+            Atom(n, BuildAdjacency n pairs))
         |> Seq.fold (fun acc x -> x :: acc) g
 
-    BuildGraph 0 pairs
+    BuildGraph init pairs
 
-let incVisit (incrementer: 'T -> 'T) (node: 'T Node) =
-    Node(fst node, snd node |> incrementer)
+let pathfinder (start: string) (finish: string) (inc: 'T -> 'T) (graph: 'T Graph) =
+    let incVisit (incrementer: 'T -> 'T) (node: 'T Node) =
+        Node(fst node, snd node |> incrementer)
 
-let getSize (node: 'T Node) = 
-    if fst node = (fst node).ToUpper() then Big else Small
+    let getSize (node: 'T Node) = 
+        if fst node = (fst node).ToUpper() then Big else Small
 
-let pathfinder (start: 'T Node) (finish: 'T Node) (graph: 'T Graph) = 
-    ()
+    let rec pathfind (a: 'T Atom) (b: 'T Atom) (graph: 'T Graph) (path: string list) =  
+        let id = GetAtomId a
+
+        match id with
+        | id when id = GetAtomId b -> [id :: path]
+        | _ ->
+            let newG = 
+                graph 
+                |> List.map (fun (n, adj) -> 
+                    if GetNodeId n = id then (incVisit inc n, adj) else (n, adj))
+
+            let choices = (GetAtomAdj a |> uniqueIds) - Set([GetAtomId a])
+
+            choices
+            |> Seq.filter (fun c ->
+                let node = (GetNode c newG).Value
+                (node |> getSize = Big) || node |> snd < 1) // TODO: Fix to be generic
+            |> Seq.fold (fun acc c ->
+                pathfind (GetAtom c graph).Value b newG (id :: path) @ acc) []
+
+    pathfind (GetAtom start graph).Value (GetAtom finish graph).Value graph []
 
 
-/// Testing zone
-let testg = parse input
-let testa = GetAtom "kj" testg
-let testn = GetNode "kj" testg
-testa.Value |> (fst >> snd >> (+) 1)
-testn.Value |> fst
-Node("abc", 0) |> incVisit ((+) 1)
-GetNode "LN" testg |> (fun x -> match x with 
-                                | Some x -> Some (fst x)
-                                | None -> None)
-
-let testnode:Node<int> = Node("test", 2)
-let g: int Graph = []
-let h = AddNode testnode g
+let paths = parse 0 input |> pathfinder "start" "end" ((+)1)
+[ for i in paths -> printfn "%A" (List.rev i) ]
+paths |> List.length
+input
