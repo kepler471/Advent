@@ -158,26 +158,26 @@ type Size =
     | Small
 
 // TODO: How would I make id generic type
-type Node<'T> = 
+type Node<'T> =
     string (* id *)  * 'T (* node data *)
 
-type Connection = 
+type Connection =
     string (* id *) * string (* id *)
 
-type Adjacency = 
+type Adjacency =
     Connection list
 
-type Atom<'TNode> = 
+type Atom<'TNode> =
     Node<'TNode> * Adjacency
 
-type Graph<'TNode> = 
+type Graph<'TNode> =
     Atom<'TNode> list
 
 // TODO: Just use a Map instead of these Get functions?
 //      Would also have to change the Graph to be Map
-let GetNodeId (node: 'T Node) : string = 
+let GetNodeId (node: 'T Node) : string =
     node |> fst
-    
+
 let GetAtomId (atom: 'T Atom) : string =
     atom |> fst |> fst
 
@@ -193,25 +193,25 @@ let GetNode (id: string) (graph: 'T Graph) : 'T Node option =
     | Some (a) -> Some(fst a)
     | None -> None
 
-let AddNode (node: Node<'T>) (graph: 'T Graph): 'T Graph = 
+let AddNode (node: Node<'T>) (graph: 'T Graph): 'T Graph =
     let id = GetNodeId node
     match (GetNode id graph) with
-    | None ->  
+    | None ->
         let newAdj : Adjacency = []
         let newAtom: 'T Atom = (node, newAdj)
         graph @ [newAtom]
     | _ -> graph
 
-let uniqueIds (pairs: ('a * 'a) seq) = 
+let uniqueIds (pairs: ('a * 'a) seq) =
     pairs
     |> Seq.fold (fun acc x -> [fst x; snd x] @ acc) []
     |> Set
 
-let parse (init: 'T) (pairs: (string * string) seq) = 
-    let BuildAdjacency (node: 'T Node) (pairs: (string * string) seq) = 
-        let connContains (id: 'a) (conn: 'a * 'a) = 
+let parse (init: 'T) (pairs: (string * string) seq) =
+    let BuildAdjacency (node: 'T Node) (pairs: (string * string) seq) =
+        let connContains (id: 'a) (conn: 'a * 'a) =
             fst conn = id || snd conn = id
-        
+
         let adj: Adjacency = []
         pairs
         |> Seq.filter (connContains (GetNodeId node))
@@ -222,8 +222,8 @@ let parse (init: 'T) (pairs: (string * string) seq) =
         let uids = pairs |> uniqueIds
         let g: 'T Graph = []
         uids
-        |> Seq.map (fun uid -> 
-            let n = Node(uid, init) 
+        |> Seq.map (fun uid ->
+            let n = Node(uid, init)
             Atom(n, BuildAdjacency n pairs))
         |> Seq.fold (fun acc x -> x :: acc) g
 
@@ -233,18 +233,18 @@ let pathfinder (start: string) (finish: string) (mutate: 'T -> 'T) (rule: 'T Nod
     let onVisit (incrementer: 'T -> 'T) (node: 'T Node) =
         Node(fst node, snd node |> incrementer)
 
-    let getSize (node: 'T Node) = 
+    let getSize (node: 'T Node) =
         if fst node = (fst node).ToUpper() then Big else Small
 
-    let rec pathfind (a: 'T Atom) (b: 'T Atom) (graph: 'T Graph) (path: string list) =  
+    let rec pathfind (a: 'T Atom) (b: 'T Atom) (graph: 'T Graph) (path: string list) =
         let id = GetAtomId a
 
         match id with
         | id when id = GetAtomId b -> [id :: path]
         | _ ->
-            let newG = 
-                graph 
-                |> List.map (fun (n, adj) -> 
+            let newG =
+                graph
+                |> List.map (fun (n, adj) ->
                     if GetNodeId n = id then (onVisit mutate n, adj) else (n, adj))
 
             let choices = (GetAtomAdj a |> uniqueIds) - Set([GetAtomId a])
@@ -259,24 +259,24 @@ let pathfinder (start: string) (finish: string) (mutate: 'T -> 'T) (rule: 'T Nod
     pathfind (GetAtom start graph).Value (GetAtom finish graph).Value graph []
 
 // Solve
-let input = 
+let input =
     System.IO.File.ReadAllLines "2021/inputs/12.txt"
     |> Array.map (fun x -> x.Split "-")
     |> Array.map (fun x -> x.[0], x.[1])
 
-let finder = pathfinder "start" "end" ((+)1) 
+let finder = pathfinder "start" "end" ((+)1)
 
 // Visit Small caves only once
-let rule1 = (fun x -> 
+let rule1 = (fun x ->
     GetNodeId x = (GetNodeId x).ToUpper() || x |> snd < 1)
 
 // Visit one Small cave up to twice, and all other Small caves only once
-let rule2 = (fun i x-> 
+let rule2 = (fun i x->
     GetNodeId x = (GetNodeId x).ToUpper() || i = GetNodeId x && x |> snd < 2 || x |> snd < 1)
 
 let mutatedInputs =
-    input 
-    |> uniqueIds 
+    input
+    |> uniqueIds
     |> Seq.filter (fun x -> x <> "start" && x <> "end" && x.ToLower() = x)
 
 printfn "%A" "--- Day 12: Passage Pathing ---"
