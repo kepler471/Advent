@@ -173,6 +173,8 @@ type Atom<'TNode> =
 type Graph<'TNode> = 
     Atom<'TNode> list
 
+// TODO: Just use a Map instead of these Get functions?
+//      Would also have to change the Graph to be Map
 let GetNodeId (node: 'T Node) : string = 
     node |> fst
     
