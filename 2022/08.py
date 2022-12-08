@@ -1,5 +1,5 @@
 with open("input8.txt", "r") as input8:
-    forest = input8.read().splitlines()
+    lines = input8.read().splitlines()
 
 
 class Forest:
@@ -78,7 +78,7 @@ class Forest:
         return "\n".join(["".join(map(str, row)) for row in self.trees])
 
 
-forest = [list(map(int, list(row))) for row in forest]
+forest = [list(map(int, list(row))) for row in lines]
 f = Forest(forest)
 print(f)
 print("\n", f.prettify(inverse=True))
