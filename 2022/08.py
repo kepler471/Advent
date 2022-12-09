@@ -39,10 +39,12 @@ class Forest:
 
         if Forest.is_edge(x, i, j):
             return True
-        elif (x[i][j] > max(row[:j]) or
-              x[i][j] > max(row[j + 1:]) or
-              x[i][j] > max(col[:i]) or
-              x[i][j] > max(col[i + 1:])):
+        elif (
+            x[i][j] > max(row[:j])
+            or x[i][j] > max(row[j + 1 :])
+            or x[i][j] > max(col[:i])
+            or x[i][j] > max(col[i + 1 :])
+        ):
             return True
         return False
 
@@ -60,10 +62,12 @@ class Forest:
         row = x[i]
         col = Forest.col_to_list(x, j)
 
-        return (view_distance(row[j + 1:]) *
-                view_distance(list(reversed(row[:j]))) *
-                view_distance(col[i + 1:]) *
-                view_distance(list(reversed(col[:i]))))
+        return (
+            view_distance(row[j + 1 :])
+            * view_distance(list(reversed(row[:j])))
+            * view_distance(col[i + 1 :])
+            * view_distance(list(reversed(col[:i])))
+        )
 
     @staticmethod
     def is_edge(x, i, j):

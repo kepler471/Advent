@@ -1,5 +1,3 @@
-import string
-
 with open("2022/input5.txt", "r") as input5:
     lines = input5.read().splitlines()
 
