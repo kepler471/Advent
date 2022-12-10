@@ -22,18 +22,6 @@ class FileSystem:
         self.dirs = {self.root: []}
         self.cwd = self.root
 
-    def __new_dir(self, directory: Path):
-        self.dirs[directory] = []
-
-    def add_dir_here(self, dirname):
-        directory = self.cwd / Path(dirname)
-        if directory in self.dirs.keys():
-            raise FileExistsError
-        self.__new_dir(directory)
-
-    def log_file_here(self, file: File):
-        self.dirs[self.cwd].append(file)
-
     def setwd(self, directory: Path):
         self.cwd = directory
 
@@ -56,9 +44,9 @@ class FileSystem:
             case ["$", _]:
                 pass
             case ["dir", dirname]:
-                self.add_dir_here(dirname)
+                self.dirs[self.cwd / Path(dirname)] = []
             case [size, name]:
-                self.log_file_here(File(name, int(size)))
+                self.dirs[self.cwd].append(File(name, int(size)))
 
 
 fs = FileSystem("/")
