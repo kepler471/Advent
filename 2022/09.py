@@ -27,7 +27,7 @@ class Vector:
         return hash(self.x)
 
     def manhattan(self: (int, int), b: (int, int)):
-        return abs(self[0] - b[0]) + abs(self[1] - b[1])  # how to do this functionally with maps and operators?
+        return abs(self[0] - b[0]) + abs(self[1] - b[1])
 
     def unit(self, b):
         step_i, step_j = self - b
