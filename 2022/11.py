@@ -1,7 +1,5 @@
 import math
-
-with open("input11.txt", "r") as input11:
-    lines = list([list(map(str.split, line)) for line in map(str.splitlines, input11.read().split("\n\n"))])
+import utils
 
 
 class Monkey:
@@ -36,6 +34,11 @@ def do_monkey_business(monkeys, n, reduce_worry, logging=False):
                 monkey.counter += 1
             monkey.items = []
 
+
+lines = list([
+    list(map(str.split, line))
+    for line in map(str.splitlines, utils.read_input(11, 2022).split("\n\n"))
+])
 
 monkeys_part1 = [Monkey(monkey) for monkey in lines]
 monkeys_part2 = [Monkey(monkey) for monkey in lines]
