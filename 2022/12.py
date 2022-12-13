@@ -113,7 +113,9 @@ class Grid(dict):
         return {p: [n for n in g.neighbors(p) if g.altitude(n) <= g.altitude(p) + 1]
                 for p in g}
 
+
 import heapq
+
 
 class PriorityQueue:
     def __init__(self):
@@ -145,6 +147,7 @@ class Queue:
     def get(self):
         return self.elements.popleft()
 
+
 def astar(a, b, graph):
     search = namedtuple("search", "visited cost")
 
@@ -169,6 +172,7 @@ def astar(a, b, graph):
                 visited[next] = current
     return search(visited, cost)
 
+
 def djikstra(a, b, graph):
     search = namedtuple("search", "visited cost")
 
@@ -188,10 +192,11 @@ def djikstra(a, b, graph):
 
             if next not in cost or new_cost < cost[next]:
                 cost[next] = new_cost
-                priority = new_cost# + manhattan(b, next)
-                frontier.put(next, priority)#, priority)
+                priority = new_cost  # + manhattan(b, next)
+                frontier.put(next, priority)  # , priority)
                 visited[next] = current
     return search(visited, cost)
+
 
 def bfs(a, b, graph):
     search = namedtuple("search", "visited cost")
@@ -210,12 +215,13 @@ def bfs(a, b, graph):
         for next in graph[current]:
             new_cost = cost[current] + 1
 
-            if next not in visited:#cost:# or new_cost < cost[next]:
+            if next not in visited:  # cost:# or new_cost < cost[next]:
                 cost[next] = new_cost
                 # priority = new_cost# + manhattan(b, next)
-                frontier.put(next)#, priority)
+                frontier.put(next)  # , priority)
                 visited[next] = current
     return search(visited, cost)
+
 
 data = list(map(list, utils.read_input(12, 2022, test=True).split()))
 
@@ -251,30 +257,75 @@ def answer(code: callable):
     dt = time.time() - start
     print(dt)
 
+
 x = "BFS"
 answer(lambda: astar(start, end, graph))
 
-# from itertools import chain, product
-# # build adjacency matrix
-# ## build adjacency list[tuple[a -> b]]
-# adj = list(chain.from_iterable([
-#     list(product([p], [n for n in g.neighbors(p) if g.altitude(n) <= g.altitude(p) + 1]))
-#     for p in g
-# ]))
+# TODO: Using the adjacency matrix below, can we run a simulation of path-taking? Take the matrix to be a Markov
+#  matrix.
+
+from itertools import chain, product
+
+# build adjacency matrix
+## build adjacency list[tuple[a -> b]]
+adj = list(chain.from_iterable([
+    list(product([p], [n for n in g.neighbors(p) if g.altitude(n) <= g.altitude(p) + 1]))
+    for p in g
+]))
+
+# build adjacency matrix list[list[bool]]
+dim = g.height * g.width
+matrix = [[0 for _ in range(dim)] for _ in range(dim)]
+for a in adj:
+    from_row = a[0][1]
+    from_col = a[0][0]
+    to_row = a[1][1]
+    to_col = a[1][0]
+    matrix[g.height * from_col + from_row][g.height * to_col + to_row] = 1
+
+
+def print_m(m): return "\n".join(["".join(map(str, row)) for row in m])
+
+
+import sys
+import numpy as np
+from numpy.linalg import matrix_power
+
+
+def g_to_m(point):
+    return g.height * fst(point) + snd(point)
+
+
+def m_to_g(index):
+    return index // g.height, index % g.height
+
+
+np.set_printoptions(threshold=sys.maxsize)
+m = np.matrix(matrix)
+norm = (m / m.sum(axis=1))
+nrows = len(norm)
+# pi = np.zeros(nrows)
+# p[0] = 1
+# np.random.choice(indices, 3, p=nonzeros)
+# matrix_power(m, 2)
+n_runs = 100_000
+runs = []
+for r in range(n_runs):
+    num_steps = 1_000_000
+    steps = np.zeros(num_steps, dtype=np.uint64)
+    current = 0  # start with (0, 0)
+    for i in range(num_steps):
+        steps[i] = current
+        if current == 27:
+            break
+        current = np.random.choice(indices, 1, p=nonzero_probs)
+        row = norm[current, :]
+        indices = norm[current, :].nonzero()[1].tolist()
+        nonzero_probs = [norm[current, x] for x in [norm[current, :].nonzero()[1]]][0].tolist()[0]
+    runs.append(steps)
+
+# np.bincount(steps) / num_steps
 #
-# # build adjacency matrix list[list[bool]]
-# dim = g.height * g.width
-# matrix = [[0 for _ in range(dim)] for _ in range(dim)]
-# for a in adj:
-#     from_row = a[0][1]
-#     from_col = a[0][0]
-#     to_row = a[1][1]
-#     to_col = a[1][0]
-#     matrix[g.height * from_col + from_row][g.height * to_col + to_row] = 1
-#
-# import sys
-# import numpy as np
-# from numpy.linalg import matrix_power
-# np.set_printoptions(threshold=sys.maxsize)
-# m1 = np.matrix(matrix)
-# matrix_power(m1, 2)
+# eigenStuff = np.linalg.eig(norm)
+# # eigenStuff[1][:,1]/np.sum(eigenStuff[1][:,1])
+# np.array(eigenStuff[1][:, 1] / np.sum(eigenStuff[1][:, 1])).flatten()
