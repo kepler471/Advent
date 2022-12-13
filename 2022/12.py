@@ -223,7 +223,7 @@ def bfs(a, b, graph):
     return search(visited, cost)
 
 
-data = list(map(list, utils.read_input(12, 2022, test=True).split()))
+data = list(map(list, utils.read_input(12, 2022, test=False).split()))
 
 g = Grid(data)
 start = g.find("S")
@@ -266,7 +266,6 @@ answer(lambda: astar(start, end, graph))
 
 from itertools import chain, product
 
-# build adjacency matrix
 ## build adjacency list[tuple[a -> b]]
 adj = list(chain.from_iterable([
     list(product([p], [n for n in g.neighbors(p) if g.altitude(n) <= g.altitude(p) + 1]))
@@ -284,6 +283,7 @@ for a in adj:
     matrix[g.height * from_col + from_row][g.height * to_col + to_row] = 1
 
 
+# matrix print
 def print_m(m): return "\n".join(["".join(map(str, row)) for row in m])
 
 
@@ -292,37 +292,57 @@ import numpy as np
 from numpy.linalg import matrix_power
 
 
-def g_to_m(point):
-    return g.height * fst(point) + snd(point)
+# convert from grid indices to matrix index
+def g_to_m(point): return g.height * fst(point) + snd(point)
 
 
-def m_to_g(index):
-    return index // g.height, index % g.height
+# convert from matrix index to grid indices
+def m_to_g(index): return index // g.height, index % g.height
 
 
-np.set_printoptions(threshold=sys.maxsize)
-m = np.matrix(matrix)
-norm = (m / m.sum(axis=1))
+np.set_printoptions(threshold=100)
+
+m = np.matrix(matrix)  # use numpy now
+norm = (m / m.sum(axis=1))  # normalise so that each row sums to one.
 nrows = len(norm)
-# pi = np.zeros(nrows)
-# p[0] = 1
-# np.random.choice(indices, 3, p=nonzeros)
-# matrix_power(m, 2)
-n_runs = 100_000
-runs = []
-for r in range(n_runs):
-    num_steps = 1_000_000
-    steps = np.zeros(num_steps, dtype=np.uint64)
-    current = 0  # start with (0, 0)
-    for i in range(num_steps):
-        steps[i] = current
-        if current == 27:
-            break
-        current = np.random.choice(indices, 1, p=nonzero_probs)
-        row = norm[current, :]
-        indices = norm[current, :].nonzero()[1].tolist()
-        nonzero_probs = [norm[current, x] for x in [norm[current, :].nonzero()[1]]][0].tolist()[0]
-    runs.append(steps)
+
+
+def simulate(transitions, n_runs, max_steps):
+    # how many simulations to run = n_runs
+    runs = []  # store those runs
+    for r in range(n_runs):
+        norm = (transitions / transitions.sum(axis=1))  # fresh normalised matrix
+        # limit the length of each simulation = max_steps
+        steps = np.zeros(max_steps, dtype=np.uint64)
+        current = 0  # start with (0, 0)
+        for i in range(max_steps):
+            steps[i] = current  # log visited points
+
+            # Do not want to revisit "current", so eliminate all possible transitions to "current"
+            norm_rows = norm[:, current].nonzero()[0]  # find the possible transitions to "current"
+
+            norm[norm_rows, current] = 0  # set visited point to unvisitable
+            norm[norm_rows] = norm[norm_rows] / norm[norm_rows].sum(axis=1)
+
+            if current == g_to_m(end):
+                runs.append(steps[1: i + 1])
+                print(f"found goal during run {r}, with length {runs[-1]}")
+                break
+            row = norm[current, :]
+            indices = row.nonzero()[1].tolist()
+            nonzero_probs = [norm[current, x] for x in indices]
+            if len(nonzero_probs) < 1 or sum(nonzero_probs) != 1:
+                break
+            current = np.random.choice(indices, 1, p=nonzero_probs)[0]
+
+
+    return runs
+
+
+runs = simulate(m, 10_000, 500)
+# success = [run for run in runs if 27 in run]
+print(len(runs))
+print(min(map(len, runs)))
 
 # np.bincount(steps) / num_steps
 #
