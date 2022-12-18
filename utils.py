@@ -1,5 +1,5 @@
 from pathlib import Path
-from itertools import chain
+from itertools import chain, islice
 
 
 def read_input(day, year, test=False):
@@ -46,3 +46,16 @@ def flatten(iterable): return list(chain.from_iterable(iterable))
 
 
 def lmap(func, *iterables): return list(map(func, *iterables))
+
+
+def manhattan(a, b): return sum(abs(pi - qi) for pi, qi in zip(a, b))
+
+
+def batched(iterable, n):
+    "Batch data into lists of length n. The last batch may be shorter."
+    # batched('ABCDEFG', 3) --> ABC DEF G
+    if n < 1:
+        raise ValueError('n must be at least one')
+    it = iter(iterable)
+    while batch := list(islice(it, n)):
+        yield batch
