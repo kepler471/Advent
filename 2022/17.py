@@ -7,14 +7,16 @@ def top(rock): return max(map(snd, rock))
 def bottom(rock): return min(map(snd, rock))
 def push(rock, d): return lmap(lambda x: add(x, d), rock)
 
-def can_fall(previous, current):
-    new = push(current, dirs["D"])
-    if len(previous) > 1:
+def can_move(previous, current, dir):
+    new = push(current, dir)  # temporarily shift down to see if it collides
+    if len(previous) > 1:  # If it is not the first rock
         prev = previous[:-1]
         for x in new:
             if x in flatten(map(snd, prev)):
                 return False
-    if bottom(new) == floor:
+    if leftmost(new) < 0 or rightmost(new) > 6:  # check if it will hit wall
+        return False
+    if bottom(new) == floor:  # any rock that has managed to hit the floor
         return False
     return True
 
@@ -35,7 +37,7 @@ types = {
 dirs = {"U": (0, 1), "D": (0, -1), "L": (-1, 0), "R": (1, 0)}
 wmap = {"<": "L", ">": "R"}
 
-moves = cycle(list(read_input(17, 2022, test=True)))
+moves = cycle(list(read_input(17, 2022, test=False)))
 t = cycle(types)
 floor = 0
 rocks = []
@@ -54,7 +56,7 @@ while len(rocks) < 2023:
     else:
         pos = snd(rocks[-1])
         print(f"1. rock at {pos} is selected")
-        if not can_fall(rocks, pos):
+        if not can_move(rocks, pos, dirs["D"]):
             print(f"2. rock can't fall, go next ####################")
             rocks[-1] = (True, pos, rock)
             continue
@@ -62,7 +64,7 @@ while len(rocks) < 2023:
         print(f"2. rock falls to {pos}")
 
     wind = next(moves)
-    if not at_wall(pos, wmap[wind]):
+    if can_move(rocks, pos, dirs[wmap[wind]]):
         print(f"3. wind {wind} pushes to  {push(pos, dirs[wmap[wind]])}")
         pos = push(pos, dirs[wmap[wind]])
     else:
