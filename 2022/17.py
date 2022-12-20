@@ -25,8 +25,6 @@ def at_wall(rock, d):
         return True if rightmost(rock) == 6 else False
 
 
-moves = cycle(list(read_input(17, 2022, test=True)))
-
 types = {
     "_": [(0, 0), (1, 0), (2, 0), (3, 0)],
     "+": [(0, 1), (1, 1), (2, 1), (1, 0), (1, 2)],
@@ -34,25 +32,14 @@ types = {
     "|": [(0, 0), (0, 1), (0, 2), (0, 3)],
     "◻": [(0, 0), (1, 0), (0, 1), (1, 1)],
 }
+dirs = {"U": (0, 1), "D": (0, -1), "L": (-1, 0), "R": (1, 0)}
+wmap = {"<": "L", ">": "R"}
 
+moves = cycle(list(read_input(17, 2022, test=True)))
 t = cycle(types)
-
-dirs = {
-    "U": (0, 1),
-    "D": (0, -1),
-    "L": (-1, 0),
-    "R": (1, 0),
-}
-
-wmap = {
-    "<": "L",
-    ">": "R",
-}
-
 floor = 0
 rocks = []
-# _ = next(t)
-# _ = next(t)
+
 while len(rocks) < 2023:
 # for n in range(30):
     print(f"n = , len(rocks) = {len(rocks)}")
