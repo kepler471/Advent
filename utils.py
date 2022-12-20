@@ -1,5 +1,5 @@
 from pathlib import Path
-from itertools import chain, islice
+from itertools import chain, islice, cycle
 
 
 def read_input(day, year, test=False):
