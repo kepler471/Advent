@@ -69,10 +69,9 @@
 
 from utils import lmap, read_input
 
-data = lmap(int, read_input(20, 2022, test=False).splitlines())
 
-
-def decrypt(values, key=None): return [v * key for v in values] if key else values
+def decrypt(values, key=None):
+    return [v * key for v in values] if key else values
 
 
 def mix(values, times=1):
@@ -82,12 +81,11 @@ def mix(values, times=1):
     for n, d in enumerate(values * times):
         i = indices.index(n % length)
         j = (i + d) % (length - 1)
-        # print(f"i = {i}, n = {n}, d = {d}, index = {(i + d) % (length - 1)}")
         indices.insert(j if j else length, indices.pop(i))
-        # print([data[x] for x in indices])
     return [values[x] for x in indices]
 
 
+data = lmap(int, read_input(20, 2022, test=False).splitlines())
 result_1 = mix(decrypt(data), 1)
 result_2 = mix(decrypt(data, 811589153), 10)
 print(sum(result_1[(result_1.index(0) + x) % len(data)] for x in [1000, 2000, 3000]))
