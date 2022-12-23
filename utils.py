@@ -3,6 +3,7 @@ from itertools import chain, islice, cycle, starmap, accumulate, pairwise
 from more_itertools import flatten, batched, first, first_true, consecutive_groups
 from collections import deque, namedtuple, Counter
 import numpy as np
+import operator as op
 
 
 def read_input(day, year, test=False):
