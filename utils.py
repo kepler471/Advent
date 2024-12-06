@@ -1,9 +1,11 @@
 from pathlib import Path
+from functools import wraps
 from itertools import chain, islice, cycle, starmap, accumulate, pairwise
 from more_itertools import flatten, batched, first, first_true, consecutive_groups
 from collections import deque, namedtuple, Counter
 import numpy as np
 import operator as op
+from time import perf_counter
 
 
 def read_input(day, year, test=False):
@@ -113,3 +115,16 @@ def find_runs(x):
 
 
 def clamp(x, lo, hi): return max(lo, min(x, hi))
+
+
+def timer(func):
+    @wraps(func)
+    def wrapper_timer(*args, **kwargs):
+        tic = perf_counter()
+        value = func(*args, **kwargs)
+        toc = perf_counter()
+        elapsed_time = toc - tic
+        print(f"Elapsed time: {elapsed_time:0.4f} seconds")
+        return value
+
+    return wrapper_timer
