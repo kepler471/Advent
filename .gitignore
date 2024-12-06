@@ -2,3 +2,6 @@
 .fake
 bin/
 obj/
+*.txt
+input
+test
