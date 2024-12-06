@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <RootNamespace>_2024</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="utils.fs" />
+        <None Include="01\01.fsx" />
+        <Content Include="01\test" />
+        <None Include="02\02.fsx" />
+        <Content Include="02\input" />
+        <Content Include="02\test" />
+        <None Include="03\03.fsx" />
+        <None Include="04\04.fsx" />
+        <None Include="05\05.fsx" />
+        <None Include="06\06.fsx" />
+        <None Include="07\07.fsx" />
+        <None Include="08\08.fsx" />
+        <None Include="09\09.fsx" />
+        <None Include="10\10.fsx" />
+        <None Include="11\11.fsx" />
+        <None Include="12\12.fsx" />
+        <None Include="13\13.fsx" />
+        <None Include="14\14.fsx" />
+        <None Include="15\15.fsx" />
+        <None Include="16\16.fsx" />
+        <None Include="17\17.fsx" />
+        <None Include="18\18.fsx" />
+        <None Include="19\19.fsx" />
+        <None Include="20\20.fsx" />
+        <None Include="21\21.fsx" />
+        <None Include="22\22.fsx" />
+        <None Include="23\23.fsx" />
+        <None Include="24\24.fsx" />
+        <None Include="25\25.fsx" />
+        <Compile Include="Program.fs"/>
+    </ItemGroup>
+
+</Project>
