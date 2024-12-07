@@ -1,5 +1,7 @@
 module _2024.utils
 
+// TODO: use open System.Drawing to use the Point type
+
 type Dirs =
     | Up
     | Do
@@ -13,14 +15,38 @@ type DirsAlt =
     | DoRi
 
 type Dirs8 =
-    | Up
-    | Do
-    | Le
-    | Ri
-    | UpLe
-    | UpRi
-    | DoLe
-    | DoRi
+    | Nrth
+    | Sout
+    | West
+    | East
+    | NoWe
+    | NoEa
+    | SoWe
+    | SoEa
+    
+let dirs = [ Up; Ri; Do; Le ]
+let dirsAlt = [ UpLe; UpRi; DoRi; DoLe ]
+let dirs8 = [ Nrth; Sout; West; East; NoWe; NoEa; SoWe; SoEa ]
+
+type rotation =
+    | Clockwise
+    | AntiClockwise
+
+let rotate items (rot: rotation) item =
+    let idx = List.findIndex ((=) item) items
+    let len = List.length items
+    match rot with
+    | Clockwise -> List.item ((idx + 1) % len) items
+    | AntiClockwise -> List.item ((idx - 1 + len) % len) items 
+
+let move dir dist pos =
+    match dir with
+    | Up -> fst pos - dist, snd pos
+    | Do -> fst pos + dist, snd pos
+    | Le -> fst pos, snd pos - dist
+    | Ri -> fst pos, snd pos + dist
+    
+let testEach dirs testFn = List.iter testFn dirs
 
 type Matrix<'T>(N: int, M: int) =
     let internalArray = Array2D.zeroCreate<'T> N M
@@ -86,3 +112,26 @@ module test =
     let secondRow = test1[1,*]
     let firstCol = test1[*,0]
     printfn $"{firstCol}"
+    
+let flattenArray2D (arr: 'T[,]) =
+    seq {
+        for i in 0 .. Array2D.length1 arr - 1 do
+            for j in 0 .. Array2D.length2 arr - 1 do
+                yield arr.[i, j]
+    }
+
+let flattenWithIndices (arr: 'T[,]) =
+    seq {
+        for i in 0 .. Array2D.length1 arr - 1 do
+            for j in 0 .. Array2D.length2 arr - 1 do
+                yield (i, j, arr.[i, j]) // Include indices and value
+    }
+
+let findIndicesOf (char: char) (arr: char[,]) =
+    flattenWithIndices arr
+    |> Seq.filter (fun (_, _, value) -> value = char) // Keep only matches
+    |> Seq.map (fun (i, j, _) -> (i, j)) // Extract indices
+    |> Seq.toList // Convert to a list
+
+let findXs = findIndicesOf 'X'
+let findMs = findIndicesOf 'M'

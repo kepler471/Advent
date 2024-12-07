@@ -24,38 +24,38 @@ let look (dir: Dirs8) (dist: int) (arr: 'a array2d) (ij: int * int) =
 
     match dir with
     // slicing a range on an array has inbuilt bounds checking
-    | Up -> arr[i - dist .. i, j] |> Array.rev
-    | Do -> arr[i .. i + dist, j]
-    | Le -> arr[i, j - dist .. j] |> Array.rev
-    | Ri -> arr[i, j .. j + dist]
+    | Nrth -> arr[i - dist .. i, j] |> Array.rev
+    | Sout -> arr[i .. i + dist, j]
+    | West -> arr[i, j - dist .. j] |> Array.rev
+    | East -> arr[i, j .. j + dist]
 
     // for the diagonals, need to check bounds
-    | UpLe ->
+    | NoWe ->
         [| for x in 0..dist do
                if i - x >= iLo && j - x >= jLo then
                    yield arr[i - x, j - x] |]
-    | UpRi ->
+    | NoEa ->
         [| for x in 0..dist do
                if i - x >= iLo && j + x <= jHi then
                    yield arr[i - x, j + x] |]
-    | DoLe ->
+    | SoWe ->
         [| for x in 0..dist do
                if i + x <= iHi && j - x >= jLo then
                    yield arr[i + x, j - x] |]
-    | DoRi ->
+    | SoEa ->
         [| for x in 0..dist do
                if i + x <= iHi && j + x <= jHi then
                    yield arr[i + x, j + x] |]
 
 let lookAround (dist: int) (arr: char array2d) (ij: int * int) =
-    [ look Up dist arr ij
-      look Do dist arr ij
-      look Le dist arr ij
-      look Ri dist arr ij
-      look UpLe dist arr ij
-      look UpRi dist arr ij
-      look DoLe dist arr ij
-      look DoRi dist arr ij ]
+    [ look Nrth dist arr ij
+      look Sout dist arr ij
+      look West dist arr ij
+      look East dist arr ij
+      look NoWe dist arr ij
+      look NoEa dist arr ij
+      look SoWe dist arr ij
+      look SoEa dist arr ij ]
 
 // Checking for the X-MAS pattern
 let checkXMas (arr: char array2d) (ij: int * int) =
