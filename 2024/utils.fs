@@ -48,6 +48,20 @@ let move dir dist pos =
     
 let testEach dirs testFn = List.iter testFn dirs
 
+let findChars (char: char) (arr: char array2d) =
+    arr
+    |> Array2D.mapi (fun i j c -> if c = char then Some(i, j) else None)
+    |> Seq.cast<Option<int * int>> // Converts the 2D array to a sequence of options
+    |> Seq.filter Option.isSome
+    |> Seq.map Option.get
+    |> Seq.toList
+
+let rec comb n l = 
+    match n, l with
+    | 0, _ -> [[]]
+    | _, [] -> []
+    | k, (x::xs) -> List.map ((@) [x]) (comb (k-1) xs) @ comb k xs
+
 type Matrix<'T>(N: int, M: int) =
     let internalArray = Array2D.zeroCreate<'T> N M
 
