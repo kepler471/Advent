@@ -23,7 +23,7 @@ type Dirs8 =
     | NoEa
     | SoWe
     | SoEa
-    
+
 let dirs = [ Up; Ri; Do; Le ]
 let dirsAlt = [ UpLe; UpRi; DoRi; DoLe ]
 let dirs8 = [ Nrth; Sout; West; East; NoWe; NoEa; SoWe; SoEa ]
@@ -35,9 +35,10 @@ type rotation =
 let rotate items (rot: rotation) item =
     let idx = List.findIndex ((=) item) items
     let len = List.length items
+
     match rot with
     | Clockwise -> List.item ((idx + 1) % len) items
-    | AntiClockwise -> List.item ((idx - 1 + len) % len) items 
+    | AntiClockwise -> List.item ((idx - 1 + len) % len) items
 
 let move dir dist pos =
     match dir with
@@ -45,7 +46,7 @@ let move dir dist pos =
     | Do -> fst pos + dist, snd pos
     | Le -> fst pos, snd pos - dist
     | Ri -> fst pos, snd pos + dist
-    
+
 let testEach dirs testFn = List.iter testFn dirs
 
 let findChars (char: char) (arr: char array2d) =
@@ -56,36 +57,48 @@ let findChars (char: char) (arr: char array2d) =
     |> Seq.map Option.get
     |> Seq.toList
 
-let rec comb n l = 
+let rec comb n l =
     match n, l with
-    | 0, _ -> [[]]
+    | 0, _ -> [ [] ]
     | _, [] -> []
-    | k, (x::xs) -> List.map ((@) [x]) (comb (k-1) xs) @ comb k xs
+    | k, (x :: xs) -> List.map ((@) [ x ]) (comb (k - 1) xs) @ comb k xs
+
+
+let rec permutationsWithReplacement n list =
+    match n with
+    | 0 -> [ [] ]
+    | _ ->
+        list
+        |> List.collect (fun x -> permutationsWithReplacement (n - 1) list |> List.map (fun perm -> x :: perm))
 
 type Matrix<'T>(N: int, M: int) =
     let internalArray = Array2D.zeroCreate<'T> N M
 
     member this.Item
-        with get(a: int, b: int) = internalArray[a, b]
-        and set(a: int, b: int) (value:'T) = internalArray[a, b] <- value
+        with get (a: int, b: int) = internalArray[a, b]
+        and set (a: int, b: int) (value: 'T) = internalArray[a, b] <- value
 
-    member this.GetSlice(rowStart: int option, rowFinish : int option, colStart: int option, colFinish : int option) =
+    member this.GetSlice(rowStart: int option, rowFinish: int option, colStart: int option, colFinish: int option) =
         let rowStart =
             match rowStart with
             | Some(v) -> v
             | None -> 0
+
         let rowFinish =
             match rowFinish with
             | Some(v) -> v
             | None -> internalArray.GetLength(0) - 1
+
         let colStart =
             match colStart with
             | Some(v) -> v
             | None -> 0
+
         let colFinish =
             match colFinish with
             | Some(v) -> v
             | None -> internalArray.GetLength(1) - 1
+
         internalArray[rowStart..rowFinish, colStart..colFinish]
 
     member this.GetSlice(row: int, colStart: int option, colFinish: int option) =
@@ -93,10 +106,12 @@ type Matrix<'T>(N: int, M: int) =
             match colStart with
             | Some(v) -> v
             | None -> 0
+
         let colFinish =
             match colFinish with
             | Some(v) -> v
             | None -> internalArray.GetLength(1) - 1
+
         internalArray[row, colStart..colFinish]
 
     member this.GetSlice(rowStart: int option, rowFinish: int option, col: int) =
@@ -104,29 +119,33 @@ type Matrix<'T>(N: int, M: int) =
             match rowStart with
             | Some(v) -> v
             | None -> 0
+
         let rowFinish =
             match rowFinish with
             | Some(v) -> v
             | None -> internalArray.GetLength(0) - 1
+
         internalArray[rowStart..rowFinish, col]
 
 module test =
     let generateTestMatrix x y =
         let matrix = new Matrix<float>(3, 3)
+
         for i in 0..2 do
             for j in 0..2 do
-                matrix[i, j] <- float(i) * x - float(j) * y
+                matrix[i, j] <- float (i) * x - float (j) * y
+
         matrix
 
     let test1 = generateTestMatrix 2.3 1.1
     let submatrix = test1[0..1, 0..1]
     printfn $"{submatrix}"
 
-    let firstRow = test1[0,*]
-    let secondRow = test1[1,*]
-    let firstCol = test1[*,0]
+    let firstRow = test1[0, *]
+    let secondRow = test1[1, *]
+    let firstCol = test1[*, 0]
     printfn $"{firstCol}"
-    
+
 let flattenArray2D (arr: 'T[,]) =
     seq {
         for i in 0 .. Array2D.length1 arr - 1 do
