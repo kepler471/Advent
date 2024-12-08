@@ -9,22 +9,14 @@ def push(rock, d): return lmap(lambda x: add(x, d), rock)
 
 def can_move(previous, current, dir):
     new = push(current, dir)  # temporarily shift down to see if it collides
-    if len(previous) > 1:  # If it is not the first rock
-        prev = previous[:-1]
-        for x in new:
-            if x in flatten(map(snd, prev)):
-                return False
+    for x in new:
+        if x in previous:
+            return False
     if leftmost(new) < 0 or rightmost(new) > 6:  # check if it will hit wall
         return False
     if bottom(new) == floor:  # any rock that has managed to hit the floor
         return False
     return True
-
-def at_wall(rock, d):
-    if d == "L":
-        return True if leftmost(rock) == 0 else False
-    elif d == "R":
-        return True if rightmost(rock) == 6 else False
 
 
 types = {
@@ -37,40 +29,49 @@ types = {
 dirs = {"U": (0, 1), "D": (0, -1), "L": (-1, 0), "R": (1, 0)}
 wmap = {"<": "L", ">": "R"}
 
-moves = cycle(list(read_input(17, 2022, test=False)))
+moves = cycle(list(read_input(17, 2022, test=True)))
 t = cycle(types)
 floor = 0
-rocks = []
-
-while len(rocks) < 2023:
-# for n in range(30):
-    print(f"n = , len(rocks) = {len(rocks)}")
-    stops_at = top(flatten(map(snd, rocks)) + [(0, floor)]) + 1  # find the highest y value in spawned rocks
+rocks = []  # TODO: instead of tracking each rock, track the highest coord in each col
+where_rock = set()
+col_maxs = (0, 0, 0, 0, 0, 0, 0)
+col_maxs_norm = (0, 0, 0, 0, 0, 0, 0)
+while len(rocks) < 5000:
+    stops_at = top(lflatten(map(snd, rocks)) + [(0, floor)]) + 1  # find the highest y value in spawned rocks
     spawn_at = stops_at + 3
 
     if not rocks or fst(rocks[-1]):  # if empty rock list, or the last rock has landed
         rock = next(t)  # spawn rock type
         pos = push(types[rock], (2, spawn_at))  # set rock position
-        print(f"1. rock {rock} is spawned as {pos}")
-        rocks.append((False, pos, rock))
+        rocks.append((False, pos, rock, col_maxs, col_maxs_norm))  # turn this on to track each step
     else:
         pos = snd(rocks[-1])
-        print(f"1. rock at {pos} is selected")
-        if not can_move(rocks, pos, dirs["D"]):
-            print(f"2. rock can't fall, go next ####################")
-            rocks[-1] = (True, pos, rock)
+        if not can_move(where_rock, pos, dirs["D"]):
+            rocks[-1] = (True, pos, rock, col_maxs, col_maxs_norm)  # rock finally settles
+            where_rock |= set(pos)  # add to rock set
             continue
         pos = push(pos, dirs["D"])
-        print(f"2. rock falls to {pos}")
 
     wind = next(moves)
-    if can_move(rocks, pos, dirs[wmap[wind]]):
-        print(f"3. wind {wind} pushes to  {push(pos, dirs[wmap[wind]])}")
+    if can_move(where_rock, pos, dirs[wmap[wind]]):
         pos = push(pos, dirs[wmap[wind]])
-    else:
-        print(f"3. wind {wind} cant push {wmap[wind]}, rock at wall, {pos}")
 
-    rocks[-1] = (False, pos, rock)
+    # unique cols occupied by rock
+    xs = {fst(xy) for xy in pos}
+    # the maximum y val across those cols
+    xs_max = {x: top(filter(lambda xy: fst(xy) == x, pos)) for x in xs}
+    # replace the col max if the current rock has a higher value
+    col_maxs = tuple(max(h, xs_max[n]) if n in xs_max else h for n, h in enumerate(col_maxs))
+    # normalise on the first column
+    delta = col_maxs[0]
+    # calculate th normalised col maximums as a difference of col_maxs[i] to col_maxs[0]
+    col_maxs_norm = tuple(h - delta for h in col_maxs)
+    rocks[-1] = (False, pos, rock, col_maxs, col_maxs_norm)
 
 
 print(top(flatten(map(snd, rocks[:-1]))))
+
+# Try a sliding window of 50
+norms = lmap(lambda x: x[4], rocks)
+maxs = [max([n[k] for n in norms]) for k in range(len(norms[0]))]
+mins = [min([n[k] for n in norms]) for k in range(len(norms[0]))]

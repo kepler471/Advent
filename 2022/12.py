@@ -264,6 +264,14 @@ answer(lambda: astar(start, end, graph))
 # TODO: Using the adjacency matrix below, can we run a simulation of path-taking? Take the matrix to be a Markov
 #  matrix.
 
+# TODO: Is there an FFT solution to the problem?
+
+# TODO: Is there an eigenvalue solution to the problem?
+
+# TODO: Is there a MapReduce solution? can that be run on Spark? what about PageRank?
+
+# TODO: Could the matrix be chunked into grids, to shrink matrix size? Find consecutive grids?
+
 from itertools import chain, product
 
 ## build adjacency list[tuple[a -> b]]
@@ -306,10 +314,11 @@ m = np.matrix(matrix)  # use numpy now
 norm = (m / m.sum(axis=1))  # normalise so that each row sums to one.
 nrows = len(norm)
 
+runs = []  # store those runs
+
 
 def simulate(transitions, n_runs, max_steps):
     # how many simulations to run = n_runs
-    runs = []  # store those runs
     for r in range(n_runs):
         norm = (transitions / transitions.sum(axis=1))  # fresh normalised matrix
         # limit the length of each simulation = max_steps
@@ -322,8 +331,8 @@ def simulate(transitions, n_runs, max_steps):
             norm_rows = norm[:, current].nonzero()[0]  # find the possible transitions to "current"
 
             norm[norm_rows, current] = 0  # set visited point to unvisitable
-            norm[norm_rows] = norm[norm_rows] / norm[norm_rows].sum(axis=1)
-
+            norm[norm_rows] = norm[norm_rows] / norm[norm_rows].sum(axis=1)  # re-normalise the affected rows
+            # TODO: what about weighting the probabilities to make less dumb transitions?
             if current == g_to_m(end):
                 runs.append(steps[1: i + 1])
                 print(f"found goal during run {r}, with length {runs[-1]}")
@@ -335,17 +344,22 @@ def simulate(transitions, n_runs, max_steps):
                 break
             current = np.random.choice(indices, 1, p=nonzero_probs)[0]
 
+        if (r + 1) % 10_000 == 0:
+            print(f"at run {r + 1}. currently there are {len([len(r) for r in runs])} solutions.")
 
     return runs
 
 
-runs = simulate(m, 10_000, 500)
+runs_results = simulate(m, 500_000, 500)
+
 # success = [run for run in runs if 27 in run]
-print(len(runs))
-print(min(map(len, runs)))
+# print(len(runs))
+# print(min(map(len, runs)))
 
 # np.bincount(steps) / num_steps
 #
 # eigenStuff = np.linalg.eig(norm)
 # # eigenStuff[1][:,1]/np.sum(eigenStuff[1][:,1])
 # np.array(eigenStuff[1][:, 1] / np.sum(eigenStuff[1][:, 1])).flatten()
+
+# TODO: write up sparse matrix solution here. test if setting all nonzeros to one at each multiplication optimises
