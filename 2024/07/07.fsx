@@ -37,13 +37,11 @@ let rec burn nums (ops: (int64 -> int64 -> int64) list) =
     | [] -> failwith "todo"
 
 let trySolve (ops: (int64 -> int64 -> int64) list) (eq: Equation) =
-    let nOps = eq.Parts.Length - 1
-    let opCombs = permutationsWithReplacement nOps ops
-    seq {
-        for opComb in opCombs ->
-            let res = burn eq.Parts opComb
-            if eq.Result = res then Some(res) else None
-    } |> Seq.tryPick id
+    let opCombs = permutationsWithReplacement (eq.Parts.Length - 1) ops
+    opCombs
+    |> Seq.tryPick (fun opComb ->
+        let res = burn eq.Parts opComb
+        if eq.Result = res then Some(res) else None) 
 
 let calculateCalibrationResult equations ops =
     equations
