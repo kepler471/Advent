@@ -2,6 +2,10 @@ module _2024.utils
 
 // TODO: use open System.Drawing to use the Point type
 
+
+let digitToInt (c: char) =
+    if System.Char.IsAsciiDigit c then int c - int '0' else failwith "Input val is not digit char" 
+
 type Dirs =
     | Up
     | Do
@@ -52,7 +56,7 @@ let testEach dirs testFn = List.iter testFn dirs
 let findChars (char: char) (arr: char array2d) =
     arr
     |> Array2D.mapi (fun i j c -> if c = char then Some(i, j) else None)
-    |> Seq.cast<Option<int * int>> // Converts the 2D array to a sequence of options
+    |> Seq.cast<Option<int * int>>
     |> Seq.filter Option.isSome
     |> Seq.map Option.get
     |> Seq.toList
@@ -157,14 +161,14 @@ let flattenWithIndices (arr: 'T[,]) =
     seq {
         for i in 0 .. Array2D.length1 arr - 1 do
             for j in 0 .. Array2D.length2 arr - 1 do
-                yield (i, j, arr.[i, j]) // Include indices and value
+                yield (i, j, arr.[i, j])
     }
 
 let findIndicesOf (char: char) (arr: char[,]) =
     flattenWithIndices arr
-    |> Seq.filter (fun (_, _, value) -> value = char) // Keep only matches
-    |> Seq.map (fun (i, j, _) -> (i, j)) // Extract indices
-    |> Seq.toList // Convert to a list
+    |> Seq.filter (fun (_, _, value) -> value = char) 
+    |> Seq.map (fun (i, j, _) -> (i, j))
+    |> Seq.toList
 
 let findXs = findIndicesOf 'X'
 let findMs = findIndicesOf 'M'
