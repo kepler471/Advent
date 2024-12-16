@@ -8,7 +8,7 @@ let map = System.IO. File.ReadAllLines("2024/12/test") |> array2D
 let samePlot a b = charAt a map = charAt b map
 
 let fillRegion (map: char array2d) (start: int * int) : (int * int) seq =
-    let visited = HashSet<(int * int)>()
+    let visited = HashSet<int * int>()
 
     let rec step (pos: int * int) =
         seq {
@@ -32,18 +32,28 @@ let fillRegion (map: char array2d) (start: int * int) : (int * int) seq =
 let uniquePlotChars = map |> Seq.cast<char> |> Seq.distinct
 let plotsByChar: (char * (int * int) list) seq = uniquePlotChars |> Seq.map (fun lab -> lab, findChars lab map)
 
-let chunker (map: char array2d) (searchList: (char * (int * int) list) seq) =
+let chunker (map: char array2d) (searchList: (char * (int * int) list) seq) filler =
     seq {
         for char, plots in searchList do
             let remaining = HashSet<int * int>()
             plots |> List.iter (fun x -> remaining.Add(x) |> ignore)
 
             while remaining.Count > 0 do
-                let filled = fillRegion map (Seq.head remaining) |> Seq.toList
+                let filled = filler map (Seq.head remaining) |> Seq.toList
                 yield char, filled
                 filled |> Seq.iter (fun x -> remaining.Remove(x) |> ignore)
     }
+let chunker' (map: char array2d) (searchList: (char * (int * int) list) seq) =
+    seq {
+        for char, plots in searchList do
+            let remaining = HashSet<int * int>()
+            plots |> List.iter (fun x -> remaining.Add(x) |> ignore)
 
+            while remaining.Count > 0 do
+                let filled = fillRegion' map (Seq.head remaining) plots |> Seq.toList
+                yield char, filled
+                filled |> Seq.iter (fun x -> remaining.Remove(x) |> ignore)
+    }
 let countFencesAtPoint (map: char array2d) (pos: int * int) =
     dirs
     |> List.filter (fun dir ->
@@ -58,8 +68,6 @@ chunker map plotsByChar
 |> List.map (fun (_, area, perim) -> area * perim)
 |> List.sum
 
-chunker map |> Seq.toList
-
 let getPanelVecs (map: char array2d) (pos: int * int) =
     dirs
     |> List.filter (fun dir ->
@@ -67,16 +75,58 @@ let getPanelVecs (map: char array2d) (pos: int * int) =
         not (inbounds map pos') || not (samePlot pos pos'))
     |> List.map (fun dir -> dir, pos)
 
+let fillRegion' (map: char array2d) (start: int * int) (subregion: (int * int) list) : (int * int) seq =
+    let visited = HashSet<(int * int)>()
+
+    let rec step (pos: int * int) =
+        seq {
+            if visited.Contains(pos) then
+                ()
+            else
+                visited.Add(pos) |> ignore
+                yield pos
+
+                let neighbours =
+                    dirs
+                    |> List.map (fun dir -> move dir 1 pos)
+                    |> List.filter (fun pos' -> inbounds map pos' && samePlot pos pos' && List.contains pos' subregion)
+
+                for neighbour in neighbours do
+                    yield! step neighbour
+        }
+
+    step start
+
+let chunker' (map: char array2d) (searchList: (char * (int * int) list) seq) =
+    seq {
+        for char, plots in searchList do
+            let remaining = HashSet<int * int>()
+            plots |> List.iter (fun x -> remaining.Add(x) |> ignore)
+
+            while remaining.Count > 0 do
+                let filled = fillRegion' map (Seq.head remaining) plots |> Seq.toList
+                yield char, filled
+                filled |> Seq.iter (fun x -> remaining.Remove(x) |> ignore)
+    }
+
 let regionPanels =
-    chunker map plotsByChar
+    chunker map plotsByChar fillRegion
     |> Seq.toList
     |> List.map (fun (c, p) -> c, p |> List.collect (getPanelVecs map))
     |> List.map (fun (c, p) -> c, p |> List.groupBy fst)
     |> List.map (fun (c, p) -> c, p |> List.map snd)
     |> List.map (fun (c, p) -> c, p |> List.map (List.map snd))
-    |> List.map (fun (c, p) -> p |> List.map (fun x -> c, x))
+    |> List.map (fun (c, p) -> c, p |> List.map (fun x -> c, x))
 
-chunker map (regionPanels |> List.collect id) |> Seq.toList
+
+chunker map (regionPanels |> List.collect (snd >> id)) fillRegion |> Seq.toList
+
+[
+    for c, regionPanels' in regionPanels do
+        // yield (c, c, regionPanels')
+        yield c, chunker' map (regionPanels') |> Seq.toList |> Seq.length
+]
+
 
 let test1 =  [('R', [(0, 0); (0, 1); (0, 2); (0, 3); (2, 4)]);
    ('R', [(0, 0); (2, 2); (1, 0); (3, 2)])]
