@@ -36,15 +36,6 @@ let quadrants (map: int array2d) xmid ymid =
 let calcSafetyFactor (map: int array2d) =
     quadrants map xmid ymid |> List.map Seq.sum |> List.reduce (*)
 
-// let calcAverageNonZero (map: int array2d) =
-//     map |> flattenArray2D |> Seq.filter (fun x -> x <> 0) |> Seq.averageBy float
-
-// let calcSafetyFactor (robots: Robot seq) =
-//     robots |> Seq.co  DO THIS FOR THE Robot Seq TYPE RATHER THAN ON THE ARRAY untBy _.p |> Seq.map snd |> Seq.averageBy float
-     
-let calcAverageNonZero (robots: Robot seq) =
-    robots |> Seq.countBy _.p |> Seq.map snd |> Seq.averageBy float
-
 let calcVarX (robots: Robot seq) =
     robots |> varBy (_.p >> _.x >> float)
 let calcVarY (robots: Robot seq) =
@@ -64,54 +55,22 @@ calcSafetyFactor EBHQ
 let searchForTree robots maxTime fn =
     let rec loop robots step acc =
         if step >= maxTime then
-            acc, robots
+            acc
         else
             let robots' = moveAllRobots robots
-            // let EBHQ = generateEBHQ robots'
             let value = fn robots'
-            // let value = fn EBHQ
             loop robots' (step + 1) (value :: acc)
     loop robots 0 []
     
-// let safs = searchForTree robots 10_000 calcSafetyFactor
-let varXs, robots' = searchForTree robots 10_000 calcVarX
-
-let avgs, robots' = searchForTree robots 2_000 calcAverageNonZero
-let avgs1, robots' = searchForTree robots' 2_000 calcAverageNonZero
-let avgs2, robots' = searchForTree robots' 2_000 calcAverageNonZero
-let avgs3, robots' = searchForTree robots' 2_000 calcAverageNonZero
-let avgs4, robots' = searchForTree robots' 2_000 calcAverageNonZero
-let allavgs = [avgs; avgs1; avgs2; avgs3; avgs4] |> List.collect id
-
-let safs = searchForTree (iterN 7100 moveAllRobots robots) 300 calcSafetyFactor
-
-// robots
-// |> List.fold
+let r7000 = (iterN 7300 moveAllRobots robots)
+let varXs= searchForTree r7000 100 calcVarX
+let varYs= searchForTree r7000 100 calcVarX
 
 // safs |> List.findIndex (fun x -> x = (safs |> List.reduce max))
-// safs |> List.reduce max
-// safs |> List.findIndex (fun x -> x = (safs |> List.reduce min))
-// safs |> List.reduce min
-avgs |> List.findIndex (fun x -> x = (avgs |> List.reduce max))
-avgs |> List.reduce max
-avgs |> List.findIndex (fun x -> x = (avgs |> List.reduce min))
-avgs |> List.reduce min
-82, 305, 671, 570
-let xvals = allavgs |> List.mapi (fun index _ -> index)
-let xvals = fst safs |> List.mapi (fun index _ -> index)
+let xvals = varXs |> List.mapi (fun index _ -> index)
 (iterN 7338 moveAllRobots robots |> generateEBHQ, 0) ||> printIntMap
+iterN 7338 moveAllRobots robots |> varBy (_.p >> _.x >> float)
 
-
-robots |> varBy (_.p >> _.x >> float)
-iterN 7338 moveAllRobots robots |> Seq.varBy (_.p >> _.x >> float)
-
-iterN 62 moveAllRobots robots |> generateEBHQ |> calcSafetyFactor
-
-// avgs |> List.map calcAverageNonZero |> List.fold max 0
-// avgs |> List.map calcSafetyFactor |> List.fold max 0
-
-let chart1 = Chart.Line(xvals, fst safs, Name = "Safety Factor")
-let chart2 = Chart.Line(xvals, allavgs, Name = "Average Non-Zero")
-chart1 |> Chart.show
-[ chart1; chart1 ] |> Chart.combine |> Chart.show
+let chart1 = Chart.Line(xvals, varXs, Name = "X-variance")
+let chart2 = Chart.Line(xvals, varYs, Name = "Y-variance")
 [ chart1; chart2 ] |> Chart.Grid(2, 1) |> Chart.show
