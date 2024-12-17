@@ -9,15 +9,18 @@ type AntennaPair =
 
 let map = System.IO.File.ReadLines("2024/08/input") |> array2D
 
+// Find all the unique chars used for antenna frequencies
 let uniqueFrequencies map =
     map
     |> Seq.cast<char>
     |> Seq.distinct
     |> Seq.filter System.Char.IsAsciiLetterOrDigit
 
+// Create a map with unique frequencies as the key, and list of antenna locations as the value
 let groupAntennas map =
     uniqueFrequencies map |> Seq.map (fun c -> (c, findChars c map)) |> Map.ofSeq
 
+// Calculate locations of antinodes, where n determines which harmonic we should search up to
 let calculateAntinodes (x1, y1) (x2, y2) n =
     let dx, dy = x2 - x1, y2 - y1
 
@@ -25,6 +28,7 @@ let calculateAntinodes (x1, y1) (x2, y2) n =
           yield (x2 + i * dx, y2 + i * dy)
           yield (x1 - i * dx, y1 - i * dy) ]
 
+// Get each unique pair of antennas within a frequency group, then find the antinodes for that pair
 let findAntinodesForGroup (coordinates: (int * int) list) n =
     comb 2 coordinates
     |> List.map (function
@@ -33,6 +37,7 @@ let findAntinodesForGroup (coordinates: (int * int) list) n =
               Coord2 = coord2
               Antinodes = calculateAntinodes coord1 coord2 n }
         | _ -> failwith "Should never occur. Can I make comb better so this case is not required?")
+
 
 let processGrid map n =
     let antennaGroups = groupAntennas map
