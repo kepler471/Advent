@@ -74,7 +74,6 @@ let setCharAt (map: char array2d) (char: char) (at: Point) =
     map[at.x, at.y] <- char 
 
 let fillRegion (map: char array2d) (start: Point) (push: Dirs): Point seq =
-    /// TODO: Easy to convert this to work on Left and Right
     let visited = HashSet<Point>()
 
     let rec step (pos: Point) =
@@ -104,29 +103,27 @@ let simulate (map: char array2d) (moves: Dirs list) : char array2d =
     let rec step (moves: Dirs list) (robo: Point) =
         match moves with
         | dir :: nextMoves ->
-            match dir with
-            | Le | Ri ->
-                let view = look dir map' robo |> List.takeWhile ((<>) '#')
-                let view = view @ ['#']
-                let tail = List.tail view
-                match tail with
-                | '.' :: _ ->
-                    let robo' = move dir 1 robo
-                    setCharAt map' '.' robo
-                    setCharAt map' '@' robo'
-                    step nextMoves robo'
-                | '#' :: _ -> 
-                    step nextMoves robo
-                | 'O' :: t when List.contains '.' t |> not ->
-                    step nextMoves robo
-                | 'O' :: t when List.contains '.' t ->
-                    let freeSpace = List.findIndex ((=) '.') view
-                    let robo' = move dir 1 robo
-                    setCharAt map' '.' robo
-                    setCharAt map' '@' robo'
-                    setCharAt map' 'O' (move dir freeSpace robo)
-                    step nextMoves robo'
-                | _ -> failwith "ERROR: Should not reach this case"
+            let view = look dir map' robo |> List.takeWhile ((<>) '#')
+            let view = view @ ['#']
+            let tail = List.tail view
+            match tail with
+            | '.' :: _ ->
+                let robo' = move dir 1 robo
+                setCharAt map' '.' robo
+                setCharAt map' '@' robo'
+                step nextMoves robo'
+            | '#' :: _ -> 
+                step nextMoves robo
+            | 'O' :: t when List.contains '.' t |> not ->
+                step nextMoves robo
+            | 'O' :: t when List.contains '.' t ->
+                let freeSpace = List.findIndex ((=) '.') view
+                let robo' = move dir 1 robo
+                setCharAt map' '.' robo
+                setCharAt map' '@' robo'
+                setCharAt map' 'O' (move dir freeSpace robo)
+                step nextMoves robo'
+            | _ -> failwith "ERROR: Should not reach this case"
         | [] -> ()
 
     step moves robotInit |> ignore
