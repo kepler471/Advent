@@ -2,6 +2,22 @@ module _2024.utils
 
 // TODO: use open System.Drawing to use the Point type
 
+type Point =
+    { x: int; y: int }
+    static member ofTuple (x: int * int) = { x = fst x; y = snd x }
+    static member (+) (p1: Point, p2: Point) = { x = p1.x + p2.x; y = p1.y + p2.y }
+    static member (-) (p1: Point, p2: Point) = { x = p1.x - p2.x; y = p1.y - p2.y }
+    static member (*) (p: Point, scalar: int) = { x = p.x * scalar; y = p.y * scalar }
+    static member (*) (scalar: int, p: Point) = { x = p.x * scalar; y = p.y * scalar }
+
+let rec rep n (item: string) =
+    match n with
+    | 0 -> item
+    | _ -> rep (n - 1) (item + item)
+
+let iterN n fn =
+    let rec iter fn' n' = if n' = 0 then fn' else iter (fn >> fn') (n' - 1)
+    iter id n
 
 let digitToInt (c: char) =
     if System.Char.IsAsciiDigit c then int c - int '0' else failwith "Input val is not digit char" 
@@ -50,6 +66,17 @@ let move dir dist pos =
     | Do -> fst pos + dist, snd pos
     | Le -> fst pos, snd pos - dist
     | Ri -> fst pos, snd pos + dist
+    
+let move8 dir dist pos =
+    match dir with
+    | Nrth -> fst pos - dist, snd pos
+    | Sout -> fst pos + dist, snd pos
+    | West -> fst pos, snd pos - dist
+    | East -> fst pos, snd pos + dist
+    | NoWe -> fst pos - dist, snd pos - dist
+    | NoEa -> fst pos + dist, snd pos + dist
+    | SoWe -> fst pos, snd pos - dist - dist
+    | SoEa -> fst pos, snd pos + dist + dist
 
 let testEach dirs testFn = List.iter testFn dirs
 
@@ -67,6 +94,25 @@ let rec comb n l =
     | _, [] -> []
     | k, (x :: xs) -> List.map ((@) [ x ]) (comb (k - 1) xs) @ comb k xs
 
+let digitAt (pos: int * int) (arr: char array2d) : int = digitToInt arr[fst pos, snd pos]
+let charAt (pos: int * int) (arr: char array2d) : char = arr[fst pos, snd pos]
+
+let inbounds (map: char array2d) pos =
+    fst pos >= map.GetLowerBound 0 && fst pos <= map.GetUpperBound 0 &&
+    snd pos >= map.GetLowerBound 0 && snd pos <= map.GetUpperBound 0
+
+let printCharMap (map: char array2d) =
+    for row in 0 .. Array2D.length1 map - 1 do
+        for col in 0 .. Array2D.length2 map - 1 do
+            printf $"%c{map[row, col]}"
+        printfn ""
+
+let printIntMap (map: int array2d) spacing =
+    for row in 0 .. Array2D.length1 map - 1 do
+        for col in 0 .. Array2D.length2 map - 1 do
+            let spacing' = rep spacing " "
+            printf $"%i{map[row, col]}{spacing'}"
+        printfn ""
 
 let rec permutationsWithReplacement n list =
     match n with
