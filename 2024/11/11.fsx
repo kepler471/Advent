@@ -23,12 +23,12 @@ let iterN n fn =
     let rec iter fn' n' = if n' = 0 then fn' else iter (fn >> fn') (n' - 1)
     iter id n
 
-let blink' (pebbles: (string * uint64) seq)=
+let blink (pebbles: (string * uint64) seq)=
     pebbles
     |> Seq.map (fun (str, n) -> decideRule str |> Array.map (fun str -> str, n))
     |> Seq.collect id
     |> Seq.groupBy fst
     |> Seq.map (fun (k, v) -> k, v |> Seq.sumBy snd)
 
-iterN 25 blink' plutoPebbles |> Seq.sumBy snd
-iterN 75 blink' plutoPebbles |> Seq.sumBy snd
+iterN 25 blink plutoPebbles |> Seq.sumBy snd
+iterN 75 blink plutoPebbles |> Seq.sumBy snd
