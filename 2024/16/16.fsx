@@ -24,43 +24,21 @@ type Reindeer =
         let d' = rotate dirs rotation this.dir
         {pos = this.pos; dir = d'}
 
-{pos={x=2;y=4}; dir=Do}.turn(Clockwise)
-
-let aStar (grid: char array2d) (start: Point) (goal: Point) (heuristic: Point -> Point -> int) =
-    let frontier = PriorityQueue<Point * Dirs, int>()
-    frontier.Enqueue((start, Ri), 0)
-    let from = Dictionary<Point, Point list>()
-    let cost = Dictionary<Point, int>()
-    from.Add(start, [])
-    cost.Add(start, 0)
-    let mutable Break = false
-    
-    while frontier.Count > 0 && not Break do
-        let current, facing = frontier.Dequeue()
-        
-        if current = goal then
-            printfn "REACHED THE BLOODY GOAL INNIT"
-            // cost[goal] <- cost[current] + 1
-            // from[goal] <- current
-            // Break <- true
-        else
-            let options = dirs |> List.filter (fun dir -> charAt (move dir 1 current) grid = '.')
-            let neighbours = options |> List.map (fun dir -> move dir 1 current)
-            
-            for next, dir in List.zip neighbours options do
-                let turnCost = if dir = facing then 0 else 1000
-                let cost' = cost[current] + 1 + turnCost
-                if cost.ContainsKey(next) |> not || cost' < cost[next] then
-                    cost[next] <- cost'
-                    let priority = cost' + (heuristic next goal)
-                    frontier.Enqueue((next, dir), priority)
-                    from[next] <- [current]
-    from, cost        
 
 let fromA, costA = aStar maze (getStart maze) (getEnd maze) (manhattan)
 // aStar maze (getStart maze) (getEnd maze) (manhattan) |> ignore
 
-// printCharMap maze 0   
+/// A function to reconstruct *all* paths from the start to a given goal
+/// node using the 'from' dictionary that stores multiple parents.
+let rec reconstructAll (node: Point) (from: Dictionary<Point, Point list>) =
+    if not (from.ContainsKey(node)) || from[node].IsEmpty then
+        [[node]] // Start node reached
+    else
+        from[node]
+        |> List.collect (fun parent -> reconstructAll parent from |> List.map (fun path -> node :: path))
+let allGoalPaths = reconstructAll {x=9;y=3} fromA
+allGoalPaths |> List.length
+printCharMap maze 0   
 // fromA
 // costA[getEnd maze]
 // fromA[getEnd maze]
