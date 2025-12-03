@@ -63,6 +63,8 @@ let findBlockageLoop bytes memory =
             n
     loop 0
 
+// TODO: fina a method to see if top and right sides can reach bottom and left
+
 
 let blockage = bytes |> List.take (findBlockageLoop bytes memory) |> List.last 
 printfn $"Part One: Cost at goal is %A{cost[goal]}"

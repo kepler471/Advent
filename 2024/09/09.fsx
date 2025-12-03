@@ -72,47 +72,42 @@ let writeBlocks (chunks: (int64 * DiskChunk) list) : int64 list =
 
     write chunks (List.rev chunks) [] 0L
     
-let moveFiles (chunks: (int64 * DiskChunk) list) : int64 list =
-     let rec write (stack: (int64 * DiskChunk) list) (revStack: (int64 * DiskChunk) list) acc pos =
-         match revStack with
-         | [] -> acc
-         | h :: t ->
-             let fileSize = (snd h).file
-             let someChunk = stack |> List.tryFind (fun x -> (snd x).space >= fileSize)
-             match someChunk with
-             | Some chunk ->
-                 let i, chunk = someChunk.Value
-                 let newChunk = { file = chunk.file; space = chunk.space - fileSize }
-                 write ((i, newChunk) :: stack.Tail) (revStack.Tail) acc pos
-             | None ->
-                 write stack (revStack.Tail) acc pos
-
-     write chunks (List.rev chunks) [0L] 0L
-    
 let moveFiles (chunks: (int64 * DiskChunk) list)=
-    let rec write (stack: (int64 * DiskChunk) list) (revStack: (int64 * DiskChunk) list) acc pos =
+    let rec write (stack: (int64 * DiskChunk) list) (revStack: (int64 * DiskChunk) list) acc =
         match revStack with
         | [] -> stack
         | h :: t ->
             let fileSize = (snd h).file
-            let someChunk =
+            let someChunkIndex =
                 stack
-                |> List.tryFind (fun (_, chunk) ->
+                |> List.tryFindIndex (fun (_, chunk) ->
                     match chunk.space with
                     | Some space -> space >= fileSize
                     | None -> false)
 
-            match someChunk with
-            | Some (i, chunk) ->
+            match someChunkIndex with
+            | Some idx ->
+                let i, chunk = stack[idx]
                 let newChunk =
                     { file = chunk.file
+                      space = Some 0L }
+                let movedChunk =
+                    { file = fileSize
                       space = chunk.space |> Option.map (fun space -> space - fileSize) }
-                let newLst = List.take index lst @ List.skip (index + 1) lst
-                write ((i, newChunk) :: stack) t (fileSize * pos :: acc) (pos + 1L)
-            | None ->
-                write stack t acc pos
+                
+                let updatedStack =
+                    stack
+                    |> List.mapi (fun j x ->
+                        if j = idx then (i, newChunk)
+                        else x)
+                    |> List.insertAt (idx + 1) (fst h, movedChunk)
 
-    write chunks (List.rev chunks) [0L] 0L
+                write updatedStack t acc
+            | None ->
+                write stack t acc
+
+    write chunks (List.rev chunks) [0L]
 
 let cnt = (Seq.toList >> writeBlocks) chunkedDiskWithIds
 let cnt2 = (Seq.toList >> moveFiles) chunkedDiskWithIds
+cnt2
