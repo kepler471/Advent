@@ -1,5 +1,6 @@
 .ionide
 .fake
+.idea
 bin/
 obj/
 *.txt
