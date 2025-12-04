@@ -25,14 +25,17 @@ module Input =
     let lines file = System.IO.File.ReadAllLines(file)
     let grid file = System.IO.File.ReadAllLines(file) |> array2D
     
-
+[<StructuredFormatDisplay("({x}, {y})")>]
 type Point =
     { x: int; y: int }
+    override this.ToString() = $"({this.x}, {this.y})"
     static member ofTuple (x: int * int) = { x = fst x; y = snd x }
     static member (+) (p1: Point, p2: Point) = { x = p1.x + p2.x; y = p1.y + p2.y }
     static member (-) (p1: Point, p2: Point) = { x = p1.x - p2.x; y = p1.y - p2.y }
     static member (*) (p: Point, scalar: int) = { x = p.x * scalar; y = p.y * scalar }
     static member (*) (scalar: int, p: Point) = { x = p.x * scalar; y = p.y * scalar }
+
+let inline (!@) (x, y) = { x = x; y = y }
 
 type RingBuffer2D<'T>(items : 'T[,]) =
     let leni = items.GetLength(0)
@@ -126,13 +129,6 @@ let rotate items (rot: rotation) item =
     match rot with
     | Clockwise -> List.item ((idx + 1) % len) items
     | AntiClockwise -> List.item ((idx - 1 + len) % len) items
-
-let moveOld dir dist pos =
-    match dir with
-    | Up -> fst pos - dist, snd pos
-    | Do -> fst pos + dist, snd pos
-    | Le -> fst pos, snd pos - dist
-    | Ri -> fst pos, snd pos + dist
     
 let move dir dist (pos: Point) =
     match dir with
@@ -143,30 +139,17 @@ let move dir dist (pos: Point) =
     
 let move8 dir dist pos =
     match dir with
-    | Nrth -> fst pos - dist, snd pos
-    | Sout -> fst pos + dist, snd pos
-    | West -> fst pos, snd pos - dist
-    | East -> fst pos, snd pos + dist
-    | NoWe -> fst pos - dist, snd pos - dist
-    | NoEa -> fst pos + dist, snd pos + dist
-    | SoWe -> fst pos, snd pos - dist - dist
-    | SoEa -> fst pos, snd pos + dist + dist
+    | Nrth -> pos |> move Up 1
+    | Sout -> pos |> move Do 1
+    | West -> pos |> move Le 1
+    | East -> pos |> move Ri 1
+    | NoWe -> pos |> move Up 1 |> move Le 1
+    | NoEa -> pos |> move Up 1 |> move Ri 1
+    | SoWe -> pos |> move Do 1 |> move Le 1
+    | SoEa -> pos |> move Do 1 |> move Ri 1
 
-let testEach dirs testFn = List.iter testFn dirs
-
-let findChars (char: char) (arr: char array2d) =
-    arr
-    |> Array2D.mapi (fun i j c -> if c = char then Some(i, j) else None)
-    |> Seq.cast<Option<int * int>>
-    |> Seq.filter Option.isSome
-    |> Seq.map Option.get
-    |> Seq.toList
-
-let rec comb n l =
-    match n, l with
-    | 0, _ -> [ [] ]
-    | _, [] -> []
-    | k, (x :: xs) -> List.map ((@) [ x ]) (comb (k - 1) xs) @ comb k xs
+let neighbours8 pos = dirs8 |> List.map (fun dir -> move8 dir 1 pos)
+let neighbours4 pos = dirs |> List.map (fun dir -> move dir 1 pos)
 
 let digitAt (pos: Point) (arr: char array2d) : int = digitToInt arr[pos.x, pos.y]
 let charAt (pos: Point) (arr: char array2d) : char = arr[pos.x, pos.y]
@@ -174,6 +157,36 @@ let charAt (pos: Point) (arr: char array2d) : char = arr[pos.x, pos.y]
 let inbounds (map: char array2d) (pos: Point) =
     pos.x >= map.GetLowerBound 0 && pos.x <= map.GetUpperBound 0 &&
     pos.y >= map.GetLowerBound 0 && pos.y <= map.GetUpperBound 0
+
+let testEach dirs testFn = List.iter testFn dirs
+
+let flattenArray2D (arr: 'T[,]) =
+    seq {
+        for i in 0 .. Array2D.length1 arr - 1 do
+            for j in 0 .. Array2D.length2 arr - 1 do
+                yield arr[i, j]
+    }
+
+let flattenWithIndices (arr: 'T[,]) =
+    seq {
+        for i in 0 .. Array2D.length1 arr - 1 do
+            for j in 0 .. Array2D.length2 arr - 1 do
+                yield (i, j, arr[i, j])
+    }
+
+let findIndicesOf (char: char) (arr: char[,]) =
+    flattenWithIndices arr
+    |> Seq.filter (fun (_, _, value) -> value = char) 
+    |> Seq.map (fun (i, j, _) -> (i, j))
+    |> Seq.toList
+
+
+let rec comb n l =
+    match n, l with
+    | 0, _ -> [ [] ]
+    | _, [] -> []
+    | k, (x :: xs) -> List.map ((@) [ x ]) (comb (k - 1) xs) @ comb k xs
+
 
 let printCharMap spacing (map: char array2d) =
     printf "  "
@@ -453,28 +466,6 @@ module test =
     let firstCol = test1[*, 0]
     printfn $"{firstCol}"
 
-let flattenArray2D (arr: 'T[,]) =
-    seq {
-        for i in 0 .. Array2D.length1 arr - 1 do
-            for j in 0 .. Array2D.length2 arr - 1 do
-                yield arr.[i, j]
-    }
-
-let flattenWithIndices (arr: 'T[,]) =
-    seq {
-        for i in 0 .. Array2D.length1 arr - 1 do
-            for j in 0 .. Array2D.length2 arr - 1 do
-                yield (i, j, arr.[i, j])
-    }
-
-let findIndicesOf (char: char) (arr: char[,]) =
-    flattenWithIndices arr
-    |> Seq.filter (fun (_, _, value) -> value = char) 
-    |> Seq.map (fun (i, j, _) -> (i, j))
-    |> Seq.toList
-
-let findXs = findIndicesOf 'X'
-let findMs = findIndicesOf 'M'
 
 module Validation =
     let showWarning message =
