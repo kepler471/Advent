@@ -26,6 +26,7 @@ module Input =
     let grid file = System.IO.File.ReadAllLines(file) |> array2D
     
 [<StructuredFormatDisplay("({x}, {y})")>]
+[<Struct>]
 type Point =
     { x: int; y: int }
     override this.ToString() = $"({this.x}, {this.y})"
@@ -59,9 +60,9 @@ let numberRing = RingBuffer2D(numbers)
 // ..
 // 9 8 -> 3
 // 9 9 -> 4
-for i in 0..9 do
-    for j in 0..9 do
-        printfn "%i %i -> %A" i j (numberRing.[i,j])
+// for i in 0..9 do
+//     for j in 0..9 do
+//         printfn "%i %i -> %A" i j (numberRing.[i,j])
 
 let manhattan a b =
     abs(a.x - b.x) + abs(a.y - b.y)
@@ -139,14 +140,14 @@ let move dir dist (pos: Point) =
     
 let move8 dir dist pos =
     match dir with
-    | Nrth -> pos |> move Up 1
-    | Sout -> pos |> move Do 1
-    | West -> pos |> move Le 1
-    | East -> pos |> move Ri 1
-    | NoWe -> pos |> move Up 1 |> move Le 1
-    | NoEa -> pos |> move Up 1 |> move Ri 1
-    | SoWe -> pos |> move Do 1 |> move Le 1
-    | SoEa -> pos |> move Do 1 |> move Ri 1
+    | Nrth -> pos |> move Up dist
+    | Sout -> pos |> move Do dist
+    | West -> pos |> move Le dist
+    | East -> pos |> move Ri dist
+    | NoWe -> pos |> move Up dist |> move Le dist
+    | NoEa -> pos |> move Up dist |> move Ri dist
+    | SoWe -> pos |> move Do dist |> move Le dist
+    | SoEa -> pos |> move Do dist |> move Ri dist
 
 let neighbours8 pos = dirs8 |> List.map (fun dir -> move8 dir 1 pos)
 let neighbours4 pos = dirs |> List.map (fun dir -> move dir 1 pos)
