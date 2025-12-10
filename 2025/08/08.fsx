@@ -5,7 +5,7 @@ open System.Collections.Generic
 
 let parse (s: string) = s.Split(",") |> Array.map float
 
-let junctions = Input.lines "08/input" |> Array.map parse
+let junctions = Input.lines "08/test" |> Array.map parse
 
 let euclidean (a: float array) (b: float array) =
     Array.map2 (fun x y -> (y - x) ** 2.0) a b
@@ -24,16 +24,26 @@ let sortedDeltas =
     |> flattenWithIndices
     |> Seq.filter (fun (_, _, c) -> c > 0)
     |> Seq.sortBy (fun (_, _, c) -> c)
+    
+let mutable connections: int Set list = []
+let mutable deltas' = sortedDeltas |> Seq.toList
+let mutable (bin: (int * int * float) list) = []
+let mutable (state: int Set list list) = []
+
+let allConnected (conns: int Set list) count =
+    match conns with
+    | [ one ] -> one.Count = count
+    | _ -> false
 
 // Now need to be able to iterate through the distances
 // and start connecting the points
-let mutable connections: int Set list = []
-
-// Build adjacency matrix
-sortedDeltas
-|> Seq.takeWhile (fun _ -> List.length connections = 1)
-|> Seq.iter (fun (a, b, c) ->
-    adjs[a, b] <- 1
+// while List.length bin  connections |> Set.count = Array.length junctions do
+// while List.length connections <> 1 && List.length bin < 2 do
+// while List.length bin < 23 do
+while not (allConnected connections junctions.Length) do
+    let a, b, _ = deltas'.Head
+    bin <- deltas'.Head :: bin
+    deltas' <- deltas'.Tail 
     
     let containsA = connections |> List.tryFindIndex (Set.contains a)
     let containsB = connections |> List.tryFindIndex (Set.contains b)
@@ -54,11 +64,16 @@ sortedDeltas
         connections <- updated :: connections
     | None, None ->
         connections <- set [a; b] :: connections
-    )
+    
+    state <- connections :: state
 
-connections |> Seq.map Set.count |> Seq.sortDescending
-// adjs
-
+// connections |> Seq.map Set.count |> Seq.sortDescending
+connections
+state
+let a1, a2, _ = bin[0]
+junctions[a1], junctions[a2]
+junctions
+// 12, 10
 //
 // let testset = Set.empty
 // let testset = testset.Add(1)
