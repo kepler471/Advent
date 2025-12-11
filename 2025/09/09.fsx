@@ -4,7 +4,7 @@ open _2025.utils
 
 let parse (s: string) = s.Split(",") |> Array.map int64
 
-let corners = Input.lines "09/input" |> Array.map parse
+let corners = Input.lines "09/test" |> Array.map parse
 
 let area (a: int64 array) (b: int64 array) =
     // Array.map2 (fun x y -> y - x) a b
@@ -93,12 +93,12 @@ let nUniqueX = uniqueX |> Array.length
 let uniqueY = corners |> Array.map (Array.rev >> Array.head) |> Array.distinct |> Array.sort
 let nUniqueY = uniqueY |> Array.length
 
-// new sparse space array 
-let sparseX = Array.pairwise uniqueX
-let nSparseX = sparseX.Length
-let sparseY = Array.pairwise uniqueY
-let nSparseY = sparseY.Length
-let sparse = Array2D.create nSparseY nSparseX 0
+// new sparse space array - OLD 
+// let sparseX = Array.pairwise uniqueX
+// let nSparseX = sparseX.Length
+// let sparseY = Array.pairwise uniqueY
+// let nSparseY = sparseY.Length
+// let sparse = Array2D.create nSparseY nSparseX 0
 
 // sparse
 
@@ -137,11 +137,23 @@ let compress (coords: int array) =
             compress' ([ one + 1 ] :: [ one ] :: acc) (two :: t)
         | one :: two :: t ->
             compress' ([ [ one + 1 .. two - 1 ] ] @ [ one ] :: acc) (two :: t)
-        | [] | _ -> acc |> List.rev
+        | [ t ] ->
+            compress' ([ t ] :: acc) []
+        | [] -> acc |> List.rev
     compress' [] (coords |> List.ofArray)
 
 compress (uniqueX |> Array.map int) |> List.length
 compress (uniqueY |> Array.map int) |> List.length
+let sparseX = compress (uniqueX |> Array.map int)
+let nSparseX = sparseX.Length
+let sparseY = compress (uniqueY |> Array.map int)
+let nSparseY = sparseY.Length
+let sparse = Array2D.create nSparseY nSparseX 0
+
+let sparseToDense sparse = 0
+let denseToSparse sparse = 0
+
+// TODO: Use the new rectCreate, loop through it and start drawing onto sparse matrix
 
 
 // drawPaths corners' 10 15 |> printIntMap 0
