@@ -9,6 +9,7 @@ open System.Collections.Generic
 open System.Collections.Concurrent
 open System.Text.RegularExpressions
 
+// TODO: Add fn to iterate through a grid/matrix by rows
 
 let memoise f =
     let cache = ConcurrentDictionary()
@@ -80,8 +81,14 @@ let iterN n fn =
     let rec iter fn' n' = if n' = 0 then fn' else iter (fn >> fn') (n' - 1)
     iter id n
 
+let isEven n = n % 2 = 0
+let isOdd n = n % 2 <> 0
+
 let digitToInt (c: char) =
     if System.Char.IsAsciiDigit c then int c - int '0' else failwith "Input val is not digit char" 
+
+let intToDigit (i: int) =
+    int '0' + i |> char
 
 let digitsToInt digits = List.fold (fun acc d -> acc * 10 + d) 0 digits
 let digitsToInt64 digits = List.fold (fun acc d -> acc * 10L + d) 0L digits
@@ -181,6 +188,8 @@ let findIndicesOf (char: char) (arr: char[,]) =
     |> Seq.map (fun (i, j, _) -> (i, j))
     |> Seq.toList
 
+let findChars c (str: string) =
+    [ for i, x in Seq.indexed str do if x = c then i ]
 
 let rec comb n l =
     match n, l with
@@ -203,6 +212,13 @@ let printCharMap spacing (map: char array2d) =
         printfn ""
 
 let printIntMap spacing (map: int array2d) =
+    for row in 0 .. Array2D.length1 map - 1 do
+        for col in 0 .. Array2D.length2 map - 1 do
+            let spacing' = rep spacing " "
+            printf $"%i{map[row, col]}{spacing'}"
+        printfn ""
+        
+let printInt64Map spacing (map: int64 array2d) =
     for row in 0 .. Array2D.length1 map - 1 do
         for col in 0 .. Array2D.length2 map - 1 do
             let spacing' = rep spacing " "
