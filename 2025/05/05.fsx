@@ -52,4 +52,6 @@ let countFreshIds (ranges: int64 array array) =
        total = combinedRanges |> List.sumBy (fun x -> x[1] - x[0] + 1L)
     |}
 
-countFreshIds freshIds 
+countFreshIds freshIds
+
+// TODO: For visualisation - use the ranges indices, assign a y for each.
